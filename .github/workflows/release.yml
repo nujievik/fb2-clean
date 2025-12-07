@@ -54,6 +54,10 @@ jobs:
           sudo apt-get update && sudo apt-get upgrade -y
           sudo apt-get install -y gcc-multilib
 
+      - name: Install zip (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: choco install zip -y
+
       - name: Update Rust
         run: rustup update stable && rustup default stable
 
