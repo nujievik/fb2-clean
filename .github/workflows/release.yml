@@ -54,10 +54,6 @@ jobs:
           sudo apt-get update && sudo apt-get upgrade -y
           sudo apt-get install -y gcc-multilib
 
-      - name: Install zip (Windows)
-        if: startsWith(matrix.os, 'windows')
-        run: choco install zip -y
-
       - name: Update Rust
         run: rustup update stable && rustup default stable
 
@@ -67,8 +63,14 @@ jobs:
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Zip binary
+      - name: Zip binary (Unix)
+        if: matrix.os != 'windows-latest'
         run: zip -j fb2-clean-${{ matrix.arch }}.zip target/${{ matrix.target }}/release/fb2-clean
+
+      - name: Zip binary (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: Compress-Archive -Path target/${{ matrix.target }}/release/fb2-clean.exe -DestinationPath fb2-clean-${{ matrix.arch }}.zip
 
       - uses: actions/upload-artifact@v4
         with:
