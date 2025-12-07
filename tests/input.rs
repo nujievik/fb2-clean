@@ -27,3 +27,13 @@ fn iter_file() {
         assert_eq!(None, iter.next());
     })
 }
+
+#[test]
+fn iter_dir_upper() {
+    let i = Input::Dir(data("upper_case"));
+    let mut iter = i.iter();
+    for _ in 0..2 {
+        assert!(iter.next().is_some());
+    }
+    assert!(iter.next().is_none());
+}
