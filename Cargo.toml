@@ -1,0 +1,16 @@
+[package]
+name = "fb2-clean"
+version = "0.1.0"
+authors = ["Ivan Reutov <nujievik@gmail.com>"]
+edition = "2024"
+rust-version = "1.85"
+description = "A CLI utility for clean fb2 files."
+repository = "https://github.com/nujievik/fb2-clean"
+license = "MIT OR Apache-2.0"
+keywords = ["cli", "utility"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+clap = "4.5"
+quick-xml = "0.38"
+zip = "6"
