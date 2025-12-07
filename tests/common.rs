@@ -1,6 +1,6 @@
+use clap::Parser;
 use fb2_clean::*;
 use std::path::{Path, PathBuf};
-use clap::Parser;
 
 pub static ITERABLE: [(InputFileType, &str); 3] = [
     (InputFileType::Fb2Zip, "book.fb2.zip"),

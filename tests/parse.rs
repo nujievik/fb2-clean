@@ -41,9 +41,8 @@ fn eq_empty_without_io(c: &Config) {
 #[test]
 fn input_dir() {
     for dir in ["", "tests"] {
-        let idir = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(dir)
-            .into_boxed_path();
+        let idir = Path::new(env!("CARGO_MANIFEST_DIR")).join(dir);
+        let idir = fs::canonicalize(idir).unwrap().into_boxed_path();
         let c = cfg(&["--input", idir.to_str().unwrap()]);
 
         assert_eq!(c.output, output_from_i(&idir));
@@ -55,12 +54,12 @@ fn input_dir() {
 #[test]
 fn input_file() {
     for &(ty, f) in ITERABLE.iter() {
-        let i = data(f);
+        let i = fs::canonicalize(data(f)).unwrap().into_boxed_path();
         let c = cfg(&["--input", i.to_str().unwrap()]);
 
         assert_eq!(c.output.dir, i.parent().unwrap().join("cleaned").into());
         assert_eq!(c.output.created_dirs, Vec::new());
-        assert_eq!(c.input, Input::File(InputFile { ty, path: i } ));
+        assert_eq!(c.input, Input::File(InputFile { ty, path: i }));
         eq_empty_without_io(&c);
     }
 }
@@ -68,9 +67,8 @@ fn input_file() {
 #[test]
 fn output() {
     for dir in ["", "tests"] {
-        let odir = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join(dir)
-            .into_boxed_path();
+        let odir = Path::new(env!("CARGO_MANIFEST_DIR")).join(dir);
+        let odir = fs::canonicalize(odir).unwrap().into_boxed_path();
         let c = cfg(&["--output", odir.to_str().unwrap()]);
 
         assert_eq!(c.input, Input::Dir(fs::canonicalize(".").unwrap().into()));

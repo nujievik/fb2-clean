@@ -8,7 +8,10 @@ use std::fs;
 #[test]
 fn create_and_remove_dirs() {
     let dir = temp("create_and_remove_dirs");
-    let mut o = Output { dir: dir.clone(), created_dirs: Vec::new() };
+    let mut o = Output {
+        dir: dir.clone(),
+        created_dirs: Vec::new(),
+    };
     let _ = fs::remove_dir_all(&dir);
 
     o.create_dirs().unwrap();
