@@ -10,6 +10,12 @@ license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
 categories = ["command-line-utilities"]
 
+include = [
+    "Cargo.toml",
+    "README.md",
+    "src/**",
+]
+
 [dependencies]
 clap = "4.5"
 quick-xml = "0.38"
