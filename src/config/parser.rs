@@ -92,6 +92,7 @@ impl CommandFactory for Config {
                     .long("unzip")
                     .alias("no-zip")
                     .help("Uncompress fb2.zip to fb2")
+                    .conflicts_with("zip")
                     .action(ArgAction::SetTrue),
             )
             .arg(

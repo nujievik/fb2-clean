@@ -1,6 +1,7 @@
 #[allow(unused)]
 mod common;
 
+use clap::Parser;
 use common::*;
 use fb2_clean::*;
 use std::{collections::HashSet, fs, path::Path, sync::LazyLock};
@@ -104,6 +105,11 @@ fn unzip() {
     assert!(c.unzip);
     c.unzip = false;
     assert_eq!(c, cfg(&[]));
+}
+
+#[test]
+fn zip_unzip_conflict() {
+    Config::try_parse_from(&["x", "--zip", "--unzip"]).unwrap_err();
 }
 
 #[test]
