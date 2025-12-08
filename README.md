@@ -36,6 +36,7 @@ Run `fb2-clean -h` to display help.
 |-------------------------|-----------------------------------|
 | `-i, --input <path>`    | Input directory OR file           |
 | `-o, --output <dir>`    | Output directory                  |
+| `-r, --recursive [<n>]` | Recursive file search `[up to n]` |
 | `-t, --tags <n[,m...]>` | Remove tags                       |
 | `-z, --zip`             | Compress fb2 to fb2.zip           |
 | `-Z, --unzip`           | Uncompress fb2.zip to fb2         |
