@@ -13,6 +13,7 @@ use tags::Tags;
 pub struct Config {
     pub input: Input,
     pub output: Output,
+    pub recursive: u8,
     pub tags: Tags,
     pub zip: bool,
     pub unzip: bool,

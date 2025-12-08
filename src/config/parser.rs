@@ -3,6 +3,7 @@ use clap::{
     Arg, ArgAction, ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser,
     builder::{TypedValueParser, ValueParser},
     error::{ContextKind, ContextValue, ErrorKind},
+    value_parser,
 };
 use std::ffi::OsStr;
 
@@ -32,6 +33,7 @@ impl FromArgMatches for Config {
         Ok(Config {
             input,
             output,
+            recursive: *m.get_one::<u8>("recursive").unwrap_or(&0),
             tags: m
                 .remove_one::<Tags>("tags")
                 .unwrap_or_else(|| Tags::default()),
@@ -70,6 +72,16 @@ impl CommandFactory for Config {
                     .value_name("dir")
                     .help("Output directory")
                     .value_parser(ValueParser::new(OutputParser)),
+            )
+            .arg(
+                Arg::new("recursive")
+                    .short('r')
+                    .long("recursive")
+                    .value_name("n")
+                    .help("Recursive file search [up to n]")
+                    .num_args(0..=1)
+                    .default_missing_value("16")
+                    .value_parser(value_parser!(u8).range(1..)),
             )
             .arg(
                 Arg::new("tags")

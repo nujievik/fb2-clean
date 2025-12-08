@@ -1,12 +1,14 @@
 use super::Config;
-use crate::{InputFile, InputFileType, Result, clean_xml};
+use crate::{Input, InputFile, InputFileType, Result, clean_xml};
 use quick_xml::{Reader, Writer};
 use std::{
     ffi::OsString,
-    fs::File,
+    fs::{self, File},
     io::{BufRead, BufReader, BufWriter, Write},
-    path::PathBuf,
+    iter,
+    path::{Component, Path, PathBuf},
 };
+use walkdir::WalkDir;
 use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
 
 impl Config {
@@ -14,9 +16,9 @@ impl Config {
     pub fn run(&self) -> Result<()> {
         let mut zip_owner: Option<ZipArchive<File>> = None;
 
-        for src in self.input.iter() {
+        for (subdirs, src) in self.subdirs_src_iter() {
             println!("Cleaning '{}'...", src.path.display());
-            let dest = Dest::new(self, &src);
+            let dest = Dest::new(self, subdirs.as_ref(), &src);
 
             if !self.force && dest.path.exists() {
                 eprintln!(
@@ -35,6 +37,37 @@ impl Config {
             }
         }
         Ok(())
+    }
+
+    fn subdirs_src_iter(&self) -> Box<dyn Iterator<Item = (Option<Vec<PathBuf>>, InputFile)> + '_> {
+        match &self.input {
+            Input::Dir(d) if self.recursive != 0 => {
+                let it = WalkDir::new(d)
+                    .max_depth(self.recursive as usize)
+                    .into_iter()
+                    .filter_map(|e| e.ok())
+                    .filter(|e| e.file_type().is_dir())
+                    .filter(|e| !e.path().starts_with(&*self.output.dir))
+                    .map(move |e| {
+                        let subdirs: Vec<PathBuf> = e
+                            .path()
+                            .strip_prefix(d)
+                            .unwrap_or(Path::new(""))
+                            .components()
+                            .filter_map(|x| match x {
+                                Component::Normal(x) => Some(PathBuf::from(x)),
+                                _ => None,
+                            })
+                            .collect();
+
+                        (Some(subdirs), Input::Dir(e.into_path().into()))
+                    })
+                    .flat_map(|(subdirs, d)| iter::repeat(subdirs).zip(d.iter()));
+
+                Box::new(it)
+            }
+            _ => Box::new(iter::repeat(None).zip(self.input.iter())),
+        }
     }
 }
 
@@ -90,7 +123,7 @@ struct Dest {
 }
 
 impl Dest {
-    fn new(cfg: &Config, src: &InputFile) -> Dest {
+    fn new(cfg: &Config, subdirs: Option<&Vec<PathBuf>>, src: &InputFile) -> Dest {
         let ty = if cfg.zip {
             InputFileType::Fb2Zip
         } else if cfg.unzip {
@@ -113,11 +146,16 @@ impl Dest {
             None => OsString::from("cleaned.fb2.zip"),
         };
 
-        Dest {
-            path: cfg.output.dir.join(&name),
-            ty,
-            name,
+        let mut path = cfg.output.dir.clone().into_path_buf();
+        if let Some(xs) = subdirs {
+            for x in xs {
+                path.push(x);
+            }
+            let _ = fs::create_dir_all(&path);
         }
+        path.push(&name);
+
+        Dest { path, ty, name }
     }
 
     fn zip_start_file(&self) -> String {

@@ -24,6 +24,8 @@ pub enum InputFileType {
 }
 
 impl Input {
+    /// Returns iterator of files in the [`Input::Dir`] directory (non-recursive),
+    /// OR single-file iterator from [`Input::File`].
     pub fn iter(&self) -> Box<dyn Iterator<Item = InputFile>> {
         match self {
             Self::Dir(d) => Box::new(

@@ -40,6 +40,39 @@ fn fb2_zip_file() {
 }
 
 #[test]
+fn recursive() {
+    let i = data("recursive").to_str().unwrap().to_owned();
+    let o = temp("recursive").to_str().unwrap().to_owned();
+    let _ = fs::remove_dir_all(&o);
+
+    let mut c = cfg(&["-ef", "-i", &i, "-o", &o, "--recursive"]);
+    c.output.create_dirs().unwrap();
+    c.run().unwrap();
+
+    for f in ["dummy.fb2", "1/dummy.fb2", "1/2/3/dummy.fb2"] {
+        let f = temp(&format!("recursive/{}", f));
+        assert!(f.exists());
+    }
+}
+
+#[test]
+fn recursive_limit() {
+    let i = data("recursive").to_str().unwrap().to_owned();
+    let o = temp("recursive_limit").to_str().unwrap().to_owned();
+    let _ = fs::remove_dir_all(&o);
+
+    let mut c = cfg(&["-ef", "-i", &i, "-o", &o, "--recursive", "1"]);
+    c.output.create_dirs().unwrap();
+    c.run().unwrap();
+
+    for f in ["dummy.fb2", "1/dummy.fb2"] {
+        let f = temp(&format!("recursive_limit/{}", f));
+        assert!(f.exists());
+    }
+    assert!(!temp("recursive_limit/1/2/3/dummy.fb2").exists());
+}
+
+#[test]
 fn zip() {
     let i = unzip_to("zip");
     assert_ne!(0, fs::metadata(&i).unwrap().len());

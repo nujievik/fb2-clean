@@ -19,6 +19,7 @@ fn empty_args() {
     let exp = Config {
         output: output_from_i(&idir),
         input: Input::Dir(idir),
+        recursive: 0,
         tags: Default::default(),
         zip: false,
         unzip: false,
@@ -76,6 +77,21 @@ fn output() {
         assert_eq!(c.output.dir, odir);
         assert_eq!(c.output.created_dirs, Vec::new());
         eq_empty_without_io(&c);
+    }
+}
+
+#[test]
+fn recursive() {
+    let mut c = cfg(&["--recursive"]);
+    assert_eq!(16, c.recursive);
+    c.recursive = 0;
+    assert_eq!(c, cfg(&[]));
+
+    for n in [1, 2, 8] {
+        let mut c = cfg(&["--recursive", &n.to_string()]);
+        assert_eq!(n, c.recursive);
+        c.recursive = 0;
+        assert_eq!(c, cfg(&[]));
     }
 }
 
@@ -144,6 +160,7 @@ fn aliases_io_tags() {
 #[test]
 fn aliases() {
     [
+        vec!["-r", "--recursive"],
         vec!["-z", "--zip"],
         vec!["-Z", "--unzip", "--no-zip"],
         vec!["-f", "--force"],
