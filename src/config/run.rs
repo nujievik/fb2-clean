@@ -15,8 +15,10 @@ impl Config {
     /// Run for current [`Config`].
     pub fn run(&self) -> Result<()> {
         let mut zip_owner: Option<ZipArchive<File>> = None;
+        let mut is_found_any = false;
 
         for (subdirs, src) in self.subdirs_src_iter() {
+            is_found_any = true;
             println!("Cleaning '{}'...", src.path.display());
             let dest = Dest::new(self, subdirs.as_ref(), &src);
 
@@ -36,6 +38,13 @@ impl Config {
                 Ok(()) => println!("Success cleaned and saved to '{}'", dest.path.display()),
             }
         }
+
+        if !is_found_any {
+            if let Input::Dir(d) = &self.input {
+                eprintln!("Warning: not found any fb2 in dir '{}'", d.display());
+            }
+        }
+
         Ok(())
     }
 
