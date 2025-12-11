@@ -1,6 +1,6 @@
 use std::{collections::HashSet, ffi::OsStr, ops::Deref};
 
-/// Clean tags configuration.
+/// Remove tags configuration.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tags(pub HashSet<Box<[u8]>>);
 

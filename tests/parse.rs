@@ -15,19 +15,18 @@ fn output_from_i(dir: &Path) -> Output {
 
 #[test]
 fn empty_args() {
+    let c = cfg(&[]);
     let idir = fs::canonicalize(".").unwrap().into_boxed_path();
-    let exp = Config {
-        output: output_from_i(&idir),
-        input: Input::Dir(idir),
-        recursive: 0,
-        tags: Default::default(),
-        zip: false,
-        unzip: false,
-        force: false,
-        exit_on_err: false,
-    };
+    let o = output_from_i(&idir);
 
-    assert_eq!(exp, cfg(&[]));
+    assert_eq!(c.input, Input::Dir(idir));
+    assert_eq!(c.output, o);
+    assert_eq!(c.recursive, 0);
+    assert_eq!(c.tags, Tags::default());
+    assert!(!c.zip);
+    assert!(!c.unzip);
+    assert!(!c.force);
+    assert!(!c.exit_on_err);
 }
 
 fn eq_empty_without_io(c: &Config) {

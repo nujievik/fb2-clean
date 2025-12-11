@@ -10,6 +10,7 @@ use tags::Tags;
 
 /// Clean configuration.
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Config {
     pub input: Input,
     pub output: Output,
