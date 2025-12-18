@@ -111,7 +111,7 @@ impl CommandFactory for Config {
                 Arg::new("force")
                     .short('f')
                     .long("force")
-                    .help("Force overwrite existing files")
+                    .help("Force overwrite input files")
                     .action(ArgAction::SetTrue),
             )
             .arg(

@@ -2,7 +2,7 @@ use super::Config;
 use crate::{Input, InputFile, InputFileType, Result, clean_xml};
 use quick_xml::{Reader, Writer};
 use std::{
-    ffi::OsString,
+    borrow::Cow,
     fs::{self, File},
     io::{BufRead, BufReader, BufWriter, Write},
     iter,
@@ -14,13 +14,18 @@ use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
 impl Config {
     /// Run for current [`Config`].
     pub fn run(&self) -> Result<()> {
+        let mut src_dests: Vec<(InputFile, Dest)> = Vec::new();
         let mut zip_owner: Option<ZipArchive<File>> = None;
         let mut is_found_any = false;
 
         for (subdirs, src) in self.subdirs_src_iter() {
-            is_found_any = true;
+            if !is_found_any {
+                println!("Cleaning input files...");
+                is_found_any = true;
+            }
+
             println!("Cleaning '{}'...", src.path.display());
-            let dest = Dest::new(self, subdirs.as_ref(), &src);
+            let dest = Dest::new(self, subdirs, &src);
 
             if !self.force && dest.path.exists() {
                 eprintln!(
@@ -34,9 +39,20 @@ impl Config {
                 .and_then(|(mut r, mut w)| clean_xml(&mut r, &mut w, &self.tags))
             {
                 Err(e) if self.exit_on_err => return Err(e),
-                Err(e) => eprintln!("Error: {}. Skipping", e),
+                Err(e) => {
+                    eprintln!("Error: {}. Skipping", e);
+                    continue;
+                }
                 Ok(()) => println!("Success cleaned and saved to '{}'", dest.path.display()),
             }
+
+            if self.force {
+                src_dests.push((src, dest));
+            }
+        }
+
+        if !src_dests.is_empty() {
+            force_overwrites(src_dests);
         }
 
         if !is_found_any {
@@ -77,6 +93,24 @@ impl Config {
             }
             _ => Box::new(iter::repeat(None).zip(self.input.iter())),
         }
+    }
+}
+
+fn force_overwrites(mut src_dests: Vec<(InputFile, Dest)>) {
+    println!("\nOverwriting input files...");
+
+    for (src, dest) in &src_dests {
+        println!("Overwriting '{}'...", src.path.display());
+        match dest.force_overwrite(&src) {
+            Ok(()) => println!("Success overwrited from '{}'", dest.path.display()),
+            Err(e) => eprintln!("Error: Fail overwrite: {}", e),
+        }
+    }
+
+    src_dests.sort_by(|a, b| b.1.len_created_dirs.cmp(&a.1.len_created_dirs));
+
+    for (_, dest) in &src_dests {
+        dest.remove_created_dirs();
     }
 }
 
@@ -126,13 +160,15 @@ fn try_reader_writer<'a>(
 }
 
 struct Dest {
+    created_dirs: Option<Vec<PathBuf>>,
+    len_created_dirs: usize,
     ty: InputFileType,
-    name: OsString,
+    stem: PathBuf,
     path: PathBuf,
 }
 
 impl Dest {
-    fn new(cfg: &Config, subdirs: Option<&Vec<PathBuf>>, src: &InputFile) -> Dest {
+    fn new(cfg: &Config, subdirs: Option<Vec<PathBuf>>, src: &InputFile) -> Dest {
         let ty = if cfg.zip {
             InputFileType::Fb2Zip
         } else if cfg.unzip {
@@ -141,37 +177,95 @@ impl Dest {
             src.ty
         };
 
-        let name = match src.path.file_stem() {
+        let stem = match src.path.file_stem() {
             Some(os) => {
-                let mut os = os.to_owned();
-                if src.ty.is_fb2() {
-                    os.push(if ty.is_fb2() { ".fb2" } else { ".fb2.zip" });
-                } else if ty.is_fb2_zip() {
-                    os.push(".zip")
+                let mut p = PathBuf::from(os);
+                if src.ty.is_fb2_zip() {
+                    p.set_extension("");
                 }
-                os
+                p
             }
-            None if ty.is_fb2() => OsString::from("cleaned.fb2"),
-            None => OsString::from("cleaned.fb2.zip"),
+            _ => PathBuf::from("cleaned"),
         };
 
         let mut path = cfg.output.dir.clone().into_path_buf();
-        if let Some(xs) = subdirs {
+        let mut created_dirs: Option<Vec<PathBuf>> = None;
+
+        if let Some(xs) = &subdirs {
             for x in xs {
                 path.push(x);
+                if let Ok(()) = fs::create_dir(&path) {
+                    created_dirs
+                        .get_or_insert_with(|| Vec::with_capacity(xs.len()))
+                        .push(path.clone())
+                }
             }
-            let _ = fs::create_dir_all(&path);
         }
-        path.push(&name);
+        path.push(&stem);
+        path.add_extension(ty.as_extension());
 
-        Dest { path, ty, name }
+        Dest {
+            len_created_dirs: created_dirs.as_ref().map(|xs| xs.len()).unwrap_or(0),
+            created_dirs,
+            ty,
+            stem,
+            path,
+        }
+    }
+
+    fn force_overwrite(&self, src: &InputFile) -> Result<()> {
+        let force_path = self.force_path(src);
+
+        if let Err(_) = fs::rename(&self.path, &force_path) {
+            fs::copy(&self.path, &force_path)?;
+            if let Err(e) = fs::remove_file(&self.path) {
+                eprintln!(
+                    "Error: fail remove temp file '{}': {}",
+                    self.path.display(),
+                    e
+                );
+            }
+        }
+
+        if force_path != &*src.path {
+            if let Err(e) = fs::remove_file(&src.path) {
+                eprintln!(
+                    "Error: fail remove input file '{}': {}",
+                    src.path.display(),
+                    e
+                );
+            }
+        }
+        Ok(())
+    }
+
+    fn force_path<'a>(&self, src: &'a InputFile) -> Cow<'a, Path> {
+        if self.ty == src.ty {
+            return Cow::Borrowed(&*src.path);
+        }
+
+        let mut p = match src.path.parent() {
+            Some(p) => PathBuf::from(p),
+            None => PathBuf::from("."),
+        };
+        p.push(&self.stem);
+        p.add_extension(self.ty.as_extension());
+        Cow::Owned(p)
+    }
+
+    fn remove_created_dirs(&self) {
+        if let Some(xs) = &self.created_dirs {
+            for x in xs.iter().rev() {
+                if let Err(e) = fs::remove_dir(x) {
+                    eprintln!("Error: Fail remove temp directory '{}': {}", x.display(), e);
+                }
+            }
+        }
     }
 
     fn zip_start_file(&self) -> String {
-        let mut s = self.name.to_string_lossy().into_owned();
-        if self.ty.is_fb2_zip() {
-            s.truncate(s.len() - 4);
-        }
+        let mut s = self.stem.to_string_lossy().into_owned();
+        s.push_str(".fb2");
         s
     }
 }

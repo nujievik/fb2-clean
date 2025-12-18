@@ -61,12 +61,16 @@ impl Input {
 }
 
 impl InputFileType {
-    pub(crate) fn is_fb2(&self) -> bool {
+    pub(crate) const fn is_fb2(&self) -> bool {
         matches!(self, Self::Fb2)
     }
 
-    pub(crate) fn is_fb2_zip(&self) -> bool {
+    pub(crate) const fn is_fb2_zip(&self) -> bool {
         matches!(self, Self::Fb2Zip)
+    }
+
+    pub(crate) const fn as_extension(&self) -> &'static str {
+        if self.is_fb2() { "fb2" } else { "fb2.zip" }
     }
 }
 

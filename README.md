@@ -40,7 +40,7 @@ Run `fb2-clean -h` to display help.
 | `-t, --tags <n[,m...]>` | Remove tags                       |
 | `-z, --zip`             | Compress fb2 to fb2.zip           |
 | `-Z, --unzip`           | Uncompress fb2.zip to fb2         |
-| `-f, --force`           | Force overwrite existing files    |
+| `-f, --force`           | Force overwrite input files       |
 | `-e, --exit-on-err`     | Skip clean next files on error    |
 
 

@@ -2,52 +2,51 @@
 mod common;
 
 use common::*;
-use std::{fs, path::Path};
+use fb2_clean::Config;
+use std::fs;
 
-fn unzip_to(dir: &str) -> Box<Path> {
-    let i = data("book.fb2.zip").to_str().unwrap().to_owned();
-    let o = temp(dir).to_str().unwrap().to_owned();
+fn assert_ne_empty(s: &str) {
+    assert_ne!(0, fs::metadata(temp(s)).unwrap().len());
+}
 
-    let mut c = cfg(&["-ef", "-i", &i, "-o", &o, "--unzip"]);
+fn run(args: &[&str]) -> Config {
+    let mut c = cfg(args);
+    let _ = fs::remove_dir_all(&c.output.dir);
     c.output.create_dirs().unwrap();
     c.run().unwrap();
+    c
+}
 
-    temp(dir).join("book.fb2").into()
+fn unzip_to(dir: &str) -> String {
+    let i = data("book.fb2.zip").to_str().unwrap().to_owned();
+    let o = temp(dir).to_str().unwrap().to_owned();
+    run(&["-e", "-i", &i, "-o", &o, "--unzip"]);
+
+    let o = temp(dir).join("book.fb2");
+    assert_ne!(0, fs::metadata(&o).unwrap().len());
+    o.to_str().unwrap().into()
 }
 
 #[test]
 fn fb2_file() {
     let i = unzip_to("fb2_file");
-    let mut c = cfg(&["-ef", "-i", i.to_str().unwrap()]);
-    c.output.create_dirs().unwrap();
-    c.run().unwrap();
-
-    let o = i.parent().unwrap().join("cleaned/book.fb2");
-    assert_ne!(0, fs::metadata(&o).unwrap().len());
+    run(&["-e", "-i", &i]);
+    assert_ne_empty("fb2_file/cleaned/book.fb2");
 }
 
 #[test]
 fn fb2_zip_file() {
     let i = data("book.fb2.zip").to_str().unwrap().to_owned();
     let o = temp("fb2_zip_file").to_str().unwrap().to_owned();
-
-    let mut c = cfg(&["-ef", "-i", &i, "-o", &o]);
-    c.output.create_dirs().unwrap();
-    c.run().unwrap();
-
-    let o = temp("fb2_zip_file").join("book.fb2.zip");
-    assert_ne!(0, fs::metadata(&o).unwrap().len());
+    run(&["-e", "-i", &i, "-o", &o]);
+    assert_ne_empty("fb2_zip_file/book.fb2.zip");
 }
 
 #[test]
 fn recursive() {
     let i = data("recursive").to_str().unwrap().to_owned();
     let o = temp("recursive").to_str().unwrap().to_owned();
-    let _ = fs::remove_dir_all(&o);
-
-    let mut c = cfg(&["-ef", "-i", &i, "-o", &o, "--recursive"]);
-    c.output.create_dirs().unwrap();
-    c.run().unwrap();
+    run(&["-e", "-i", &i, "-o", &o, "--recursive"]);
 
     for f in ["dummy.fb2", "1/dummy.fb2", "1/2/3/dummy.fb2"] {
         let f = temp(&format!("recursive/{}", f));
@@ -59,11 +58,7 @@ fn recursive() {
 fn recursive_limit() {
     let i = data("recursive").to_str().unwrap().to_owned();
     let o = temp("recursive_limit").to_str().unwrap().to_owned();
-    let _ = fs::remove_dir_all(&o);
-
-    let mut c = cfg(&["-ef", "-i", &i, "-o", &o, "--recursive", "1"]);
-    c.output.create_dirs().unwrap();
-    c.run().unwrap();
+    run(&["-e", "-i", &i, "-o", &o, "--recursive", "1"]);
 
     for f in ["dummy.fb2", "1/dummy.fb2"] {
         let f = temp(&format!("recursive_limit/{}", f));
@@ -75,37 +70,32 @@ fn recursive_limit() {
 #[test]
 fn zip() {
     let i = unzip_to("zip");
-    assert_ne!(0, fs::metadata(&i).unwrap().len());
-
-    let mut c = cfg(&["-ef", "-i", i.to_str().unwrap(), "--zip"]);
-    c.output.create_dirs().unwrap();
-    c.run().unwrap();
-
-    let o = i.parent().unwrap().join("cleaned/book.fb2.zip");
-    assert_ne!(0, fs::metadata(&o).unwrap().len());
+    run(&["-e", "-i", &i, "--zip"]);
+    assert_ne_empty("zip/cleaned/book.fb2.zip");
 }
 
 #[test]
 fn unzip() {
-    let o_file = unzip_to("unzip");
-    assert_ne!(0, fs::metadata(&o_file).unwrap().len());
+    let _ = unzip_to("unzip");
 }
 
 #[test]
 fn force() {
-    let i = data("book.fb2.zip").to_str().unwrap().to_owned();
-    let o = temp("force").to_str().unwrap().to_owned();
-    let o_file = temp("force/book.fb2.zip");
+    let i = unzip_to("force");
+    run(&["-ef", "-i", &i, "--zip"]);
+    assert_ne_empty("force/book.fb2.zip");
+    assert!(!fs::exists(i).unwrap());
+}
 
-    let mut c = cfg(&["-e", "-i", &i, "-o", &o]);
-    c.output.create_dirs().unwrap();
-    let _ = fs::File::create(&o_file);
+#[test]
+fn force_recursive() {
+    let i = data("recursive").to_str().unwrap().to_owned();
+    let o = temp("force_recursive").to_str().unwrap().to_owned();
+    run(&["-e", "-i", &i, "-o", &o, "--recursive"]);
 
-    c.run().unwrap();
-    assert_eq!(0, fs::metadata(&o_file).unwrap().len());
-    c.force = true;
-    c.run().unwrap();
-    assert_ne!(0, fs::metadata(&o_file).unwrap().len());
+    let c = run(&["-ef", "-i", &o, "--recursive"]);
+    c.output.remove_created_dirs();
+    assert!(!fs::exists(c.output.dir).unwrap());
 }
 
 #[test]
