@@ -42,7 +42,6 @@ impl Default for Tags {
     /// Returns new [`Tags`] with "binary", "coverpage" and "image" bytes.
     /// ```
     /// use fb2_clean::Tags;
-    /// use std::collections::HashSet;
     ///
     /// let tags = Tags::default();
     /// assert_eq!(3, tags.len());
