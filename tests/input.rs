@@ -13,7 +13,7 @@ fn iter_dir() {
         .map(|&(ty, f)| InputFile { ty, path: data(f) })
         .collect();
 
-    assert_eq!(exp, i.iter().collect());
+    assert_eq!(exp, i.new_iter().collect());
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn iter_file() {
         let f = InputFile { ty, path: data(f) };
         let i = Input::File(f.clone());
 
-        let mut iter = i.iter();
+        let mut iter = i.new_iter();
         assert_eq!(Some(f), iter.next());
         assert_eq!(None, iter.next());
     })
@@ -31,7 +31,7 @@ fn iter_file() {
 #[test]
 fn iter_dir_upper() {
     let i = Input::Dir(data("upper_case"));
-    let mut iter = i.iter();
+    let mut iter = i.new_iter();
     for _ in 0..2 {
         assert!(iter.next().is_some());
     }

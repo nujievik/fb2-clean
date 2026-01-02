@@ -8,12 +8,12 @@ https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml)
 
 ## Quick Start
 
-1. [Download](https://github.com/nujievik/fb2-clean/releases) the
+1. [Download](https://github.com/nujievik/fb2-clean/releases) an
 archive for your system.
 
 2. Unpack it.
 
-3. Run the unpacked `fb2-clean` in a directory with fb2.
+3. Run the unpacked `fb2-clean` in a directory with fb2 files.
 
 
 ## Default Behaviour
@@ -42,6 +42,7 @@ Run `fb2-clean -h` to display help.
 | `-Z, --unzip`           | Uncompress fb2.zip to fb2         |
 | `-f, --force`           | Force overwrite input files       |
 | `-e, --exit-on-err`     | Skip clean next files on error    |
+| `-j, --jobs <n>` | Max parallel jobs |
 
 
 ## Manual Build 🤓

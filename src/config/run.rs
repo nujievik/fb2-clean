@@ -1,12 +1,15 @@
 use super::Config;
 use crate::{Input, InputFile, InputFileType, Result, clean_xml};
+use either::Either;
 use quick_xml::{Reader, Writer};
+use rayon::prelude::*;
 use std::{
     borrow::Cow,
     fs::{self, File},
     io::{BufRead, BufReader, BufWriter, Write},
     iter,
     path::{Component, Path, PathBuf},
+    sync::{Mutex, Once},
 };
 use walkdir::WalkDir;
 use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
@@ -14,48 +17,20 @@ use zip::{ZipArchive, ZipWriter, write::SimpleFileOptions};
 impl Config {
     /// Run for current [`Config`].
     pub fn run(&self) -> Result<()> {
-        let mut src_dests: Vec<(InputFile, Dest)> = Vec::new();
-        let mut zip_owner: Option<ZipArchive<File>> = None;
-        let mut is_found_any = false;
+        let is_found_any = Once::new();
+        let it = Mutex::new(self.subdirs_src_iter());
 
-        for (subdirs, src) in self.subdirs_src_iter() {
-            if !is_found_any {
-                println!("Cleaning input files...");
-                is_found_any = true;
-            }
-
-            println!("Cleaning '{}'...", src.path.display());
-            let dest = Dest::new(self, subdirs, &src);
-
-            if !self.force && dest.path.exists() {
-                eprintln!(
-                    "Warning: output is already exists '{}'. Skipping",
-                    dest.path.display()
-                );
-                continue;
-            }
-
-            match try_reader_writer(&mut zip_owner, &src, &dest)
-                .and_then(|(mut r, mut w)| clean_xml(&mut r, &mut w, &self.tags))
-            {
-                Err(e) if self.exit_on_err => return Err(e),
-                Err(e) => {
-                    eprintln!("Error: {}. Skipping", e);
-                    continue;
-                }
-                Ok(()) => println!("Success cleaned and saved to '{}'", dest.path.display()),
-            }
-
-            if self.force {
-                src_dests.push((src, dest));
-            }
-        }
+        let src_dests: Vec<(InputFile, Dest)> = (0..self.jobs)
+            .into_par_iter()
+            .map(|_| job_src_dests(self, &is_found_any, &it))
+            .collect::<std::result::Result<Vec<_>, String>>()
+            .map(|vecs| vecs.into_iter().flatten().collect())?;
 
         if !src_dests.is_empty() {
             force_overwrites(src_dests);
         }
 
-        if !is_found_any {
+        if !is_found_any.is_completed() {
             if let Input::Dir(d) = &self.input {
                 eprintln!("Warning: not found any fb2 in dir '{}'", d.display());
             }
@@ -64,7 +39,7 @@ impl Config {
         Ok(())
     }
 
-    fn subdirs_src_iter(&self) -> Box<dyn Iterator<Item = (Option<Vec<PathBuf>>, InputFile)> + '_> {
+    fn subdirs_src_iter(&self) -> impl Iterator<Item = (Option<Vec<PathBuf>>, InputFile)> {
         match &self.input {
             Input::Dir(d) if self.recursive != 0 => {
                 let it = WalkDir::new(d)
@@ -87,13 +62,65 @@ impl Config {
 
                         (Some(subdirs), Input::Dir(e.into_path().into()))
                     })
-                    .flat_map(|(subdirs, d)| iter::repeat(subdirs).zip(d.iter()));
+                    .flat_map(|(subdirs, d)| iter::repeat(subdirs).zip(d.new_iter()));
 
-                Box::new(it)
+                Either::Left(it)
             }
-            _ => Box::new(iter::repeat(None).zip(self.input.iter())),
+            _ => Either::Right(iter::repeat(None).zip(self.input.new_iter())),
         }
     }
+}
+
+fn job_src_dests(
+    cfg: &Config,
+    is_found_any: &Once,
+    it: &Mutex<impl Iterator<Item = (Option<Vec<PathBuf>>, InputFile)>>,
+) -> std::result::Result<Vec<(InputFile, Dest)>, String> {
+    let mut src_dests: Vec<(InputFile, Dest)> = Vec::new();
+    let mut zip_owner: Option<ZipArchive<File>> = None;
+
+    loop {
+        let (src, dest) = {
+            let mut it = it.lock().ok();
+            match it.as_mut().and_then(|it| it.next()) {
+                Some((subdirs, src)) => {
+                    is_found_any.call_once(|| {
+                        println!("Cleaning input files...");
+                    });
+                    let dest = Dest::new(cfg, subdirs, &src);
+                    (src, dest)
+                }
+                None => break,
+            }
+        };
+        println!("Cleaning '{}'...", src.path.display());
+
+        if !cfg.force && dest.path.exists() {
+            eprintln!(
+                "Warning: output is already exists '{}'. Skipping",
+                dest.path.display()
+            );
+            continue;
+        }
+
+        match try_reader_writer(&mut zip_owner, &src, &dest)
+            .and_then(|(mut r, mut w)| clean_xml(&mut r, &mut w, &cfg.tags))
+        {
+            Err(e) if cfg.exit_on_err => return Err(e.to_string()),
+            Err(e) => {
+                eprintln!("Error: {}. Skipping", e);
+                continue;
+            }
+            Ok(()) => {
+                println!("Success cleaned and saved to '{}'", dest.path.display())
+            }
+        }
+
+        if cfg.force {
+            src_dests.push((src, dest));
+        }
+    }
+    Ok(src_dests)
 }
 
 fn force_overwrites(mut src_dests: Vec<(InputFile, Dest)>) {
