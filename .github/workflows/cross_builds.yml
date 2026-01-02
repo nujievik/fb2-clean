@@ -1,6 +1,10 @@
 name: Cross Builds
 
 on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 env:
@@ -10,6 +14,8 @@ jobs:
   linux-arm64:
     runs-on: ubuntu-latest
     env:
+      CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
+      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
       TARGET: aarch64-unknown-linux-gnu
 
     steps:
@@ -17,14 +23,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get upgrade -y
+          sudo apt-get update
           sudo apt-get install -y gcc gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Install Rust target
         run: rustup target add ${{ env.TARGET }}
 
       - name: Build
-        run: |
-            export CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-            export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-            cargo -vv build --release --locked --target ${{ env.TARGET }}
+        run: cargo -vv build --release --locked --target ${{ env.TARGET }}
