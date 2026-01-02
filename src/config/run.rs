@@ -123,7 +123,7 @@ fn job_src_dests(
     Ok(src_dests)
 }
 
-fn force_overwrites(mut src_dests: Vec<(InputFile, Dest)>) {
+fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
     println!("\nOverwriting input files...");
 
     for (src, dest) in &src_dests {
@@ -134,10 +134,18 @@ fn force_overwrites(mut src_dests: Vec<(InputFile, Dest)>) {
         }
     }
 
-    src_dests.sort_by(|a, b| b.1.len_created_dirs.cmp(&a.1.len_created_dirs));
+    let mut dirs: Vec<PathBuf> = Vec::new();
+    for (_, dest) in src_dests {
+        for d in dest.created_dirs.into_iter().flat_map(|ds| ds.into_iter()) {
+            dirs.push(d);
+        }
+    }
+    dirs.par_sort_by(|a, b| b.as_os_str().len().cmp(&a.as_os_str().len()));
 
-    for (_, dest) in &src_dests {
-        dest.remove_created_dirs();
+    for d in dirs {
+        if let Err(e) = fs::remove_dir(&d) {
+            eprintln!("Error: Fail remove temp directory '{}': {}", d.display(), e);
+        }
     }
 }
 
@@ -188,7 +196,6 @@ fn try_reader_writer<'a>(
 
 struct Dest {
     created_dirs: Option<Vec<PathBuf>>,
-    len_created_dirs: usize,
     ty: InputFileType,
     stem: PathBuf,
     path: PathBuf,
@@ -232,7 +239,6 @@ impl Dest {
         path.add_extension(ty.as_extension());
 
         Dest {
-            len_created_dirs: created_dirs.as_ref().map(|xs| xs.len()).unwrap_or(0),
             created_dirs,
             ty,
             stem,
@@ -278,16 +284,6 @@ impl Dest {
         p.push(&self.stem);
         p.add_extension(self.ty.as_extension());
         Cow::Owned(p)
-    }
-
-    fn remove_created_dirs(&self) {
-        if let Some(xs) = &self.created_dirs {
-            for x in xs.iter().rev() {
-                if let Err(e) = fs::remove_dir(x) {
-                    eprintln!("Error: Fail remove temp directory '{}': {}", x.display(), e);
-                }
-            }
-        }
     }
 
     fn zip_start_file(&self) -> String {

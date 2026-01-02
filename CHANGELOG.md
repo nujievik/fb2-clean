@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - API: Input::iter (use Input::new_iter instead).
 
+### Fixed
+
+- Remove temp directories while `--force`.
+
+
 ## [0.2.1] - 2025-12-18
 
 ### Changed
