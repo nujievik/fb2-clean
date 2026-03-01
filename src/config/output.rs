@@ -9,50 +9,48 @@ use std::{
 pub struct Output {
     /// Output directory.
     pub dir: Box<Path>,
-    /// The descending directory chain created in real time to the [`Output::dir`].
-    pub created_dirs: Vec<Box<Path>>,
+    /// Length of a created directory chain up to [`Output::dir`].
+    pub len_created_dir_chain: usize,
 }
 
 impl Output {
     /// Creates non-exists directories in the directory chain up to [`Output::dir`],
-    /// storing the created directories in [`Output::created_dirs`].
+    /// storing the count of created directories to [`Output::len_created_dir_chain`].
     pub fn create_dirs(&mut self) -> Result<()> {
-        let mut dirs = Vec::<Box<Path>>::new();
+        let mut dirs: Vec<&Path> = Vec::new();
         let mut dir = &*self.dir;
 
         while !dir.exists() {
-            dirs.push(dir.into());
-
-            if let Some(parent) = dir.parent() {
-                dir = parent;
-            } else {
-                break;
+            dirs.push(dir);
+            match dir.parent() {
+                Some(parent) => dir = parent,
+                None => break,
             }
         }
 
         for dir in dirs.iter().rev() {
             if let Err(err) = fs::create_dir(dir) {
                 if !dir.exists() {
-                    remove_dir_chain(&dirs);
+                    remove_created_dirs(&self.dir, dirs.len());
                     return Err(err.into());
                 }
             }
         }
 
-        self.created_dirs = dirs;
+        self.len_created_dir_chain = dirs.len();
         Ok(())
     }
 
     /// Removes all created empty directories.
     pub fn remove_created_dirs(&self) {
-        remove_dir_chain(&self.created_dirs)
+        remove_created_dirs(&self.dir, self.len_created_dir_chain);
     }
 
-    pub(crate) fn new(path: impl AsRef<Path>) -> Result<Output> {
+    pub fn new(path: impl AsRef<Path>) -> Result<Output> {
         let dir = new_dir(path.as_ref())?;
         Ok(Output {
             dir,
-            created_dirs: Vec::new(),
+            len_created_dir_chain: 0,
         })
     }
 
@@ -65,9 +63,23 @@ impl Output {
     }
 }
 
-fn remove_dir_chain(dirs: &Vec<Box<Path>>) {
-    for dir in dirs {
+impl Default for Output {
+    fn default() -> Output {
+        let dir = Path::new(".").join("cleaned");
+        Output {
+            dir: new_dir(&dir).unwrap_or(dir.into()),
+            len_created_dir_chain: 0,
+        }
+    }
+}
+
+fn remove_created_dirs(mut dir: &Path, len_created_dir_chain: usize) {
+    for _ in 0..len_created_dir_chain {
         let _ = fs::remove_dir(dir);
+        match dir.parent() {
+            Some(parent) => dir = parent,
+            None => break,
+        }
     }
 }
 

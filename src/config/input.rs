@@ -27,29 +27,7 @@ pub enum InputFileType {
 impl Input {
     /// Returns iterator of files in the [`Input::Dir`] directory (non-recursive),
     /// OR single-file iterator from [`Input::File`].
-    #[deprecated(since = "0.2.2", note = "Use new_iter")]
-    pub fn iter(&self) -> Box<dyn Iterator<Item = InputFile>> {
-        match self {
-            Self::Dir(d) => Box::new(
-                fs::read_dir(d)
-                    .ok()
-                    .into_iter()
-                    .flat_map(|rd| rd.filter_map(std::result::Result::ok))
-                    .filter_map(|entry| {
-                        let path = entry.path();
-                        get_input_file_type(&path).map(|ty| InputFile {
-                            ty,
-                            path: path.into(),
-                        })
-                    }),
-            ),
-            Self::File(f) => Box::new(Some(f.clone()).into_iter()),
-        }
-    }
-
-    /// Returns iterator of files in the [`Input::Dir`] directory (non-recursive),
-    /// OR single-file iterator from [`Input::File`].
-    pub fn new_iter(&self) -> impl Iterator<Item = InputFile> + use<> {
+    pub fn iter(&self) -> impl Iterator<Item = InputFile> + use<> {
         match self {
             Self::Dir(d) => Either::Left(
                 fs::read_dir(d)
@@ -66,6 +44,12 @@ impl Input {
             ),
             Self::File(f) => Either::Right(iter::once(f.clone())),
         }
+    }
+}
+
+impl Default for Input {
+    fn default() -> Input {
+        Input::new(".").unwrap_or_else(|_| Input::Dir(Path::new(".").into()))
     }
 }
 

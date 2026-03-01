@@ -1,5 +1,10 @@
-mod clean_xml;
 mod config;
+mod remove_xml_tags;
+
+#[cfg(feature = "cli")]
+pub mod cli;
+#[cfg(feature = "gui")]
+pub mod gui;
 
 use std::{error::Error, result};
 
@@ -12,4 +17,4 @@ pub use config::{
     tags::Tags,
 };
 
-pub use clean_xml::clean_xml;
+pub use remove_xml_tags::remove_xml_tags;

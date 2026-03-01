@@ -1,11 +1,12 @@
-use std::{collections::HashSet, ffi::OsStr, ops::Deref};
+use indexmap::IndexSet;
+use std::{ffi::OsStr, fmt, ops::Deref};
 
 /// Remove tags configuration.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Tags(pub HashSet<Box<[u8]>>);
+pub struct Tags(pub IndexSet<Box<[u8]>>);
 
 impl Deref for Tags {
-    type Target = HashSet<Box<[u8]>>;
+    type Target = IndexSet<Box<[u8]>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -13,13 +14,8 @@ impl Deref for Tags {
 }
 
 impl Tags {
-    /// Always returns `Ok`.
-    pub(crate) fn fallible_new(os: impl AsRef<OsStr>) -> Result<Tags, String> {
-        Ok(Self::new(os))
-    }
-
     pub(crate) fn new(os: impl AsRef<OsStr>) -> Tags {
-        let mut set: HashSet<Box<[u8]>> = HashSet::new();
+        let mut set: IndexSet<Box<[u8]>> = IndexSet::new();
 
         let bytes = os.as_ref().as_encoded_bytes();
         let len = bytes.len();
@@ -50,10 +46,22 @@ impl Default for Tags {
     /// }
     /// ```
     fn default() -> Tags {
-        let mut set = HashSet::with_capacity(3);
+        let mut set: IndexSet<Box<[u8]>> = IndexSet::with_capacity(3);
         set.insert(b"binary".as_slice().into());
         set.insert(b"coverpage".as_slice().into());
         set.insert(b"image".as_slice().into());
         Tags(set)
+    }
+}
+
+impl fmt::Display for Tags {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        for (i, t) in (1..).zip(self.0.iter()) {
+            write!(f, "{}", String::from_utf8_lossy(t))?;
+            if i < self.0.len() {
+                write!(f, ",")?;
+            }
+        }
+        Ok(())
     }
 }

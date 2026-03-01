@@ -4,12 +4,12 @@ mod common;
 use clap::Parser;
 use common::*;
 use fb2_clean::*;
-use std::{collections::HashSet, fs, path::Path, sync::LazyLock};
+use std::{fs, path::Path, sync::LazyLock};
 
 fn output_from_i(dir: &Path) -> Output {
     Output {
         dir: dir.join("cleaned").into(),
-        created_dirs: Vec::new(),
+        len_created_dir_chain: 0,
     }
 }
 
@@ -59,7 +59,7 @@ fn input_file() {
         let c = cfg(&["--input", i.to_str().unwrap()]);
 
         assert_eq!(c.output.dir, i.parent().unwrap().join("cleaned").into());
-        assert_eq!(c.output.created_dirs, Vec::new());
+        assert_eq!(c.output.len_created_dir_chain, 0);
         assert_eq!(c.input, Input::File(InputFile { ty, path: i }));
         eq_empty_without_io(&c);
     }
@@ -74,7 +74,7 @@ fn output() {
 
         assert_eq!(c.input, Input::Dir(fs::canonicalize(".").unwrap().into()));
         assert_eq!(c.output.dir, odir);
-        assert_eq!(c.output.created_dirs, Vec::new());
+        assert_eq!(c.output.len_created_dir_chain, 0);
         eq_empty_without_io(&c);
     }
 }
@@ -96,8 +96,9 @@ fn recursive() {
 
 #[test]
 fn tags() {
+    use indexmap::IndexSet;
     for tags in ["a", "b", "a,b", "a,c"] {
-        let exp: HashSet<Box<[u8]>> = tags.split(',').map(|t| t.as_bytes().into()).collect();
+        let exp: IndexSet<Box<[u8]>> = tags.split(',').map(|t| t.as_bytes().into()).collect();
         let mut c = cfg(&["--tags", tags]);
 
         assert_eq!(c.tags, Tags(exp));

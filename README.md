@@ -1,31 +1,42 @@
 # fb2-clean
 
-A CLI utility for clean fb2 files.
+A simple GUI/CLI utility for clean fb2 books.
 
 [![Tests](https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml/badge.svg)](
 https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml)
 
+![logo](https://raw.githubusercontent.com/nujievik/fb2-clean/main/assets/logo.png)
+
 
 ## Quick Start
 
-1. [Download](https://github.com/nujievik/fb2-clean/releases) an
-archive for your system.
+### GUI version
 
+1. [Download](https://github.com/nujievik/fb2-clean/releases) a 
+Fb2CleanGui-* archive for your system.
 2. Unpack it.
+3. Run the unpacked **Fb2CleanGui**.
+4. Setup if needed.
+5. Press **START** button to clean.
 
-3. Run the unpacked `fb2-clean` in a directory with fb2 files.
+![gui-example](https://raw.githubusercontent.com/nujievik/fb2-clean/main/assets/gui-example.png)
 
+### CLI version
+
+1. [Download](https://github.com/nujievik/fb2-clean/releases) a
+fb2-clean-* archive for your system.
+2. Unpack it.
+3. Run the unpacked **fb2-clean** in a directory with fb2 files.
+
+![cli-example](https://raw.githubusercontent.com/nujievik/fb2-clean/main/assets/cli-example.png)
 
 ## Default Behaviour
 
-- Saves cleaned files to the `cleaned` subdirectory.
-
-- Cleans all `fb2` and `fb2.zip` in a directory.
-
-- Removes `binary`, `coverpage`, and `image` tags.
-
-- Keeps input extension: saves `fb2` as `fb2` and `fb2.zip` as
-`fb2.zip`.
+- Saves cleaned files to the **cleaned** subdirectory.
+- Cleans all **fb2** and **fb2.zip** in a CWD directory.
+- Removes **binary**, **coverpage**, and **image** tags.
+- Keeps input extension: saves **fb2** as **fb2** and **fb2.zip** as
+**fb2.zip**.
 
 
 ## Advanced Use 🤓
@@ -47,21 +58,23 @@ Run `fb2-clean -h` to display help.
 
 ## Manual Build 🤓
 
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-
+1. Install [Rust](https://www.rust-lang.org/tools/install).
 2. Clone the repo:
 ```
 git clone https://github.com/nujievik/fb2-clean --depth 1
 ```
-
 3. Enter the project directory:
 ```
 cd fb2-clean
 ```
-
 4. Build:
-```
-cargo build --release
-```
-
-5. On success, the binary will be in `target/release/fb2-clean`
+    - GUI version:
+    ```
+    cargo build --release --bin Fb2CleanGui --no-default-features --features gui
+    ```
+    
+    - CLI version:
+    ```
+    cargo build --release
+    ```
+5. On success, the binary will be in **target/release/** directory.

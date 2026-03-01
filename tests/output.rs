@@ -10,14 +10,14 @@ fn create_and_remove_dirs() {
     let dir = temp("create_and_remove_dirs");
     let mut o = Output {
         dir: dir.clone(),
-        created_dirs: Vec::new(),
+        len_created_dir_chain: 0,
     };
     let _ = fs::remove_dir_all(&dir);
 
     o.create_dirs().unwrap();
     assert!(dir.exists());
-    assert_eq!(&o.created_dirs, &vec![dir.clone()]);
+    assert_eq!(o.len_created_dir_chain, 1);
 
     o.remove_created_dirs();
-    assert!(!dir.exists())
+    assert!(!dir.exists());
 }

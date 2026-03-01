@@ -1,6 +1,7 @@
 use super::Config;
-use crate::{Input, InputFile, InputFileType, Result, clean_xml};
+use crate::{Input, InputFile, InputFileType, Result, remove_xml_tags};
 use either::Either;
+use log::{error, info, warn};
 use quick_xml::{Reader, Writer};
 use rayon::prelude::*;
 use std::{
@@ -32,7 +33,7 @@ impl Config {
 
         if !is_found_any.is_completed() {
             if let Input::Dir(d) = &self.input {
-                eprintln!("Warning: not found any fb2 in dir '{}'", d.display());
+                warn!("not found any fb2 in directory '{}'", d.display());
             }
         }
 
@@ -62,11 +63,11 @@ impl Config {
 
                         (Some(subdirs), Input::Dir(e.into_path().into()))
                     })
-                    .flat_map(|(subdirs, d)| iter::repeat(subdirs).zip(d.new_iter()));
+                    .flat_map(|(subdirs, d)| iter::repeat(subdirs).zip(d.iter()));
 
                 Either::Left(it)
             }
-            _ => Either::Right(iter::repeat(None).zip(self.input.new_iter())),
+            _ => Either::Right(iter::repeat(None).zip(self.input.iter())),
         }
     }
 }
@@ -85,7 +86,7 @@ fn job_src_dests(
             match it.as_mut().and_then(|it| it.next()) {
                 Some((subdirs, src)) => {
                     is_found_any.call_once(|| {
-                        println!("Cleaning input files...");
+                        info!("Cleaning input files...");
                     });
                     let dest = Dest::new(cfg, subdirs, &src);
                     (src, dest)
@@ -93,26 +94,26 @@ fn job_src_dests(
                 None => break,
             }
         };
-        println!("Cleaning '{}'...", src.path.display());
+        info!("Cleaning '{}'...", src.path.display());
 
         if !cfg.force && dest.path.exists() {
-            eprintln!(
-                "Warning: output is already exists '{}'. Skipping",
+            warn!(
+                "output is already exists '{}'. Skipping",
                 dest.path.display()
             );
             continue;
         }
 
         match try_reader_writer(&mut zip_owner, &src, &dest)
-            .and_then(|(mut r, mut w)| clean_xml(&mut r, &mut w, &cfg.tags))
+            .and_then(|(mut r, mut w)| remove_xml_tags(&mut r, &mut w, &cfg.tags))
         {
             Err(e) if cfg.exit_on_err => return Err(e.to_string()),
             Err(e) => {
-                eprintln!("Error: {}. Skipping", e);
+                error!("{}. Skipping", e);
                 continue;
             }
             Ok(()) => {
-                println!("Success cleaned and saved to '{}'", dest.path.display())
+                info!("Success cleaned and saved to '{}'", dest.path.display())
             }
         }
 
@@ -124,13 +125,13 @@ fn job_src_dests(
 }
 
 fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
-    println!("\nOverwriting input files...");
+    info!("\nOverwriting input files...");
 
     for (src, dest) in &src_dests {
-        println!("Overwriting '{}'...", src.path.display());
+        info!("Overwriting '{}'...", src.path.display());
         match dest.force_overwrite(&src) {
-            Ok(()) => println!("Success overwrited from '{}'", dest.path.display()),
-            Err(e) => eprintln!("Error: Fail overwrite: {}", e),
+            Ok(()) => info!("Success overwrited from '{}'", dest.path.display()),
+            Err(e) => error!("fail overwrite: {}", e),
         }
     }
 
@@ -144,7 +145,7 @@ fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
 
     for d in dirs {
         if let Err(e) = fs::remove_dir(&d) {
-            eprintln!("Error: Fail remove temp directory '{}': {}", d.display(), e);
+            error!("fail remove temp directory '{}': {}", d.display(), e);
         }
     }
 }
@@ -252,21 +253,13 @@ impl Dest {
         if let Err(_) = fs::rename(&self.path, &force_path) {
             fs::copy(&self.path, &force_path)?;
             if let Err(e) = fs::remove_file(&self.path) {
-                eprintln!(
-                    "Error: fail remove temp file '{}': {}",
-                    self.path.display(),
-                    e
-                );
+                error!("fail remove temp file '{}': {}", self.path.display(), e);
             }
         }
 
         if force_path != &*src.path {
             if let Err(e) = fs::remove_file(&src.path) {
-                eprintln!(
-                    "Error: fail remove input file '{}': {}",
-                    src.path.display(),
-                    e
-                );
+                error!("fail remove input file '{}': {}", src.path.display(), e);
             }
         }
         Ok(())

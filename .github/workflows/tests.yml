@@ -38,20 +38,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+
       - name: Install 32-bit dependencies (Linux)
         if: matrix.target == 'i686-unknown-linux-gnu'
-        run: |
-          sudo apt-get update && sudo apt-get upgrade -y
-          sudo apt-get install -y gcc-multilib
-
-      - name: Update Rust
-        run: rustup update stable && rustup default stable
+        run: sudo apt-get install -y gcc-multilib
 
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
 
       - name: Test
-        run: cargo test --verbose --target ${{ matrix.target }}
+        run: cargo test -vv --target ${{ matrix.target }}
 
       - name: Test Release
-        run: cargo test --verbose --release --target ${{ matrix.target }}
+        run: cargo test -vv --release --target ${{ matrix.target }}
+
+      - name: Build GUI Release
+        run: cargo build -vv --release --bin Fb2CleanGui --no-default-features --features gui --target ${{ matrix.target }}

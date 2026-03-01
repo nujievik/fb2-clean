@@ -1,3 +1,6 @@
+**/.DS_Store
+*.app
+*.dmg
 /target
 /tests/data/temp/*
 

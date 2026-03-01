@@ -1,10 +1,10 @@
 [package]
 name = "fb2-clean"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
-description = "A CLI utility for clean fb2 files."
+description = "A simple GUI/CLI utility for clean fb2 books."
 repository = "https://github.com/nujievik/fb2-clean"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
@@ -16,10 +16,31 @@ include = [
     "src/**",
 ]
 
+[[bin]]
+name = "fb2-clean"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "Fb2CleanGui"
+path = "src/main_gui.rs"
+required-features = ["gui"]
+
+[features]
+default = ["cli"]
+cli = ["clap", "supports-color"]
+gui = ["eframe", "rfd", "image"]
+
 [dependencies]
-clap = "4.5"
-either = "1.15.0"
+clap = { version = "4.5", optional = true }
+eframe = { version = "0.32.3", optional = true }
+either = "1"
+image = { version = "0.25", optional = true }
+indexmap = "2"
+log = "0.4"
 quick-xml = "0.38"
 rayon = "1"
-walkdir = "2.5"
+rfd = { version = "0.17", optional = true }
+supports-color = { version = "3", optional = true }
+walkdir = "2"
 zip = "6"

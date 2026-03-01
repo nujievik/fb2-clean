@@ -3,7 +3,11 @@ use quick_xml::{Reader, Writer, events::Event};
 use std::io::{BufRead, Write};
 
 /// Removes specified tags from an XML.
-pub fn clean_xml<R, W>(src: &mut Reader<R>, dest: &mut Writer<W>, rm_tags: &Tags) -> Result<()>
+pub fn remove_xml_tags<R, W>(
+    src: &mut Reader<R>,
+    dest: &mut Writer<W>,
+    rm_tags: &Tags,
+) -> Result<()>
 where
     R: BufRead,
     W: Write,
@@ -34,18 +38,10 @@ where
                     dest.write_event(Event::Empty(e))?;
                 }
             }
-            Ok(Event::Text(e)) => {
-                if rm_depth == 0 {
-                    dest.write_event(Event::Text(e))?;
-                }
-            }
             Ok(Event::Eof) => break,
-            Ok(e) => {
-                if rm_depth == 0 {
-                    dest.write_event(e)?;
-                }
-            }
-            Err(e) => return Err(Box::new(e)),
+            Ok(event) if rm_depth == 0 => dest.write_event(event)?,
+            Ok(_) => (),
+            Err(err) => return Err(Box::new(err)),
         }
         buf.clear();
     }

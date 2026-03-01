@@ -1,4 +1,4 @@
-use super::{Config, Input, Output, Tags};
+use crate::{Config, Input, Output, Tags};
 use clap::{
     Arg, ArgAction, ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser,
     builder::{TypedValueParser, ValueParser},
@@ -195,3 +195,10 @@ macro_rules! ty_parser {
 ty_parser!(InputParser, Input, Input::new);
 ty_parser!(OutputParser, Output, Output::new);
 ty_parser!(TagsParser, Tags, Tags::fallible_new);
+
+impl Tags {
+    /// Always returns `Ok`.
+    fn fallible_new(os: impl AsRef<OsStr>) -> std::result::Result<Tags, String> {
+        Ok(Self::new(os))
+    }
+}
