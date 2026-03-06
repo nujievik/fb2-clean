@@ -33,7 +33,7 @@ gui = ["eframe", "rfd", "image"]
 
 [dependencies]
 clap = { version = "4.5", optional = true }
-eframe = { version = "0.32.3", optional = true }
+eframe = { version = "0.33.3", optional = true }
 either = "1"
 image = { version = "0.25", optional = true }
 indexmap = "2"

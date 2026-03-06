@@ -50,8 +50,8 @@ impl eframe::App for App {
             ui.horizontal(|ui| {
                 if ui
                     .add_sized(
-                        [298.0, 32.0],
-                        egui::Button::new(egui::RichText::new("START").size(16.0)),
+                        [328.0, 32.0],
+                        egui::Button::new(egui::RichText::new("START").size(18.0)),
                     )
                     .clicked()
                 {
@@ -100,7 +100,8 @@ impl eframe::App for App {
                 .on_hover_text("Remove the following tags from a book structure");
             if ui.text_edit_singleline(&mut self.tags_buf).lost_focus() {
                 self.cfg.tags = Tags::new(&self.tags_buf);
-                info!("Tags set: '{}'", self.cfg.tags);
+                self.tags_buf = self.cfg.tags.to_string();
+                info!("Tags set: '{}'", self.tags_buf);
             }
             ui.add_space(10.0);
 
