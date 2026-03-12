@@ -9,7 +9,7 @@ fn main() -> eframe::Result<()> {
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([344.0, 464.0])
+            .with_inner_size([344.0, 482.0])
             .with_icon(std::sync::Arc::new(egui::IconData {
                 rgba: image::load_from_memory(include_bytes!("../assets/logo.png"))
                     .unwrap()

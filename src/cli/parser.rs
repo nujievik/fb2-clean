@@ -1,11 +1,11 @@
-use crate::{Config, Input, Output, Tags};
+use crate::{Config, Input, Lang, Msg, Output, Tags, msg};
 use clap::{
     Arg, ArgAction, ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser,
     builder::{TypedValueParser, ValueParser},
     error::{ContextKind, ContextValue, ErrorKind},
     value_parser,
 };
-use std::ffi::OsStr;
+use std::{ffi::OsStr, str::FromStr};
 
 type Result<T> = std::result::Result<T, clap::Error>;
 
@@ -21,6 +21,18 @@ impl FromArgMatches for Config {
     }
 
     fn from_arg_matches_mut(m: &mut ArgMatches) -> Result<Config> {
+        if let Some(lang) = m.remove_one::<Lang>("lang") {
+            let _ = Msg::set_lang(lang);
+        }
+
+        if m.get_flag("help") {
+            let mut cmd = Config::command();
+            if let Err(_) = cmd.print_help() {
+                println!("{}", cmd.render_help());
+            }
+            std::process::exit(0);
+        }
+
         let input = match m.remove_one::<Input>("input") {
             Some(i) => i,
             None => Input::new(".").unwrap(),
@@ -63,7 +75,7 @@ impl CommandFactory for Config {
                     .short('i')
                     .long("input")
                     .value_name("path")
-                    .help("Input directory OR file")
+                    .help(msg!(HelpInput))
                     .value_parser(ValueParser::new(InputParser)),
             )
             .arg(
@@ -71,7 +83,7 @@ impl CommandFactory for Config {
                     .short('o')
                     .long("output")
                     .value_name("dir")
-                    .help("Output directory")
+                    .help(msg!(HelpOutput))
                     .value_parser(ValueParser::new(OutputParser)),
             )
             .arg(
@@ -79,7 +91,7 @@ impl CommandFactory for Config {
                     .short('r')
                     .long("recursive")
                     .value_name("n")
-                    .help("Recursive file search [up to n]")
+                    .help(msg!(HelpRecursive))
                     .num_args(0..=1)
                     .default_missing_value("16")
                     .value_parser(value_parser!(u8).range(1..)),
@@ -89,14 +101,14 @@ impl CommandFactory for Config {
                     .short('t')
                     .long("tags")
                     .value_name("n[,m...]")
-                    .help("Remove tags")
+                    .help(msg!(HelpTags))
                     .value_parser(ValueParser::new(TagsParser)),
             )
             .arg(
                 Arg::new("zip")
                     .short('z')
                     .long("zip")
-                    .help("Compress fb2 to fb2.zip")
+                    .help(msg!(HelpZip))
                     .action(ArgAction::SetTrue),
             )
             .arg(
@@ -104,7 +116,7 @@ impl CommandFactory for Config {
                     .short('Z')
                     .long("unzip")
                     .alias("no-zip")
-                    .help("Uncompress fb2.zip to fb2")
+                    .help(msg!(HelpUnzip))
                     .conflicts_with("zip")
                     .action(ArgAction::SetTrue),
             )
@@ -112,7 +124,8 @@ impl CommandFactory for Config {
                 Arg::new("force")
                     .short('f')
                     .long("force")
-                    .help("Force overwrite input files")
+                    .alias("overwrite")
+                    .help(msg!(HelpForce))
                     .action(ArgAction::SetTrue),
             )
             .arg(
@@ -120,7 +133,7 @@ impl CommandFactory for Config {
                     .short('e')
                     .long("exit-on-err")
                     .alias("exit-on-error")
-                    .help("Skip clean next files on error")
+                    .help(msg!(HelpExitOnError))
                     .action(ArgAction::SetTrue),
             )
             .arg(
@@ -128,23 +141,32 @@ impl CommandFactory for Config {
                     .short('j')
                     .long("jobs")
                     .value_name("n")
-                    .help("Max parallel jobs")
+                    .help(msg!(HelpJobs))
                     .value_parser(value_parser!(u8).range(1..)),
             )
             .next_help_heading("Other")
             .arg(
+                Arg::new("lang")
+                    .short('l')
+                    .long("lang")
+                    .alias("language")
+                    .value_name("lng")
+                    .help(msg!(HelpLang))
+                    .value_parser(ValueParser::new(Lang::from_str)),
+            )
+            .arg(
                 Arg::new("version")
                     .short('V')
                     .long("version")
-                    .help("Show version")
+                    .help(msg!(HelpVersion))
                     .action(ArgAction::Version),
             )
             .arg(
                 Arg::new("help")
                     .short('h')
                     .long("help")
-                    .help("Show help")
-                    .action(ArgAction::Help),
+                    .help(msg!(HelpHelp))
+                    .action(ArgAction::SetTrue),
             )
     }
 

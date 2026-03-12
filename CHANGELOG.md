@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Russian translate.
+
 ### Changed
 - GUI: display tags.
+- GUI: dynamic disable unused options.
 - GUI: increase font size.
+- Log & help messages.
 
 ## [0.3.0] - 2026-03-01
 

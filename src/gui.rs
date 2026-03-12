@@ -1,6 +1,6 @@
 mod logger;
 
-use crate::{Config, Input, InputFile, Output, Result, Tags};
+use crate::{Config, Input, InputFile, Lang, Msg, Output, Result, Tags, msg};
 use eframe::egui;
 use log::{error, info};
 use logger::{GuiLog, GuiLogger};
@@ -14,6 +14,7 @@ pub struct App {
     output_buf: String,
     is_output_set: bool,
     tags_buf: String,
+    lang: Lang,
 }
 
 impl Default for App {
@@ -26,6 +27,7 @@ impl Default for App {
             is_output_set: false,
             tags_buf: cfg.tags.to_string(),
             cfg,
+            lang: Default::default(),
         }
     }
 }
@@ -51,7 +53,7 @@ impl eframe::App for App {
                 if ui
                     .add_sized(
                         [328.0, 32.0],
-                        egui::Button::new(egui::RichText::new("START").size(18.0)),
+                        egui::Button::new(egui::RichText::new(msg!(GuiStart)).size(18.0)),
                     )
                     .clicked()
                 {
@@ -64,78 +66,110 @@ impl eframe::App for App {
                 }
             });
             ui.separator();
-            ui.add_space(10.0);
 
+            let old_lang = self.lang;
+            egui::ComboBox::from_label(msg!(GuiLanguage))
+                .selected_text(match self.lang {
+                    Lang::Eng => "English",
+                    Lang::Rus => "Русский",
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.lang, Lang::Eng, "English");
+                    ui.selectable_value(&mut self.lang, Lang::Rus, "Русский");
+                });
+            if self.lang != old_lang {
+                let _ = Msg::set_lang(self.lang);
+            }
+
+            ui.add_space(10.0);
             ui.horizontal(|ui| {
-                if ui.button("Select input directory").clicked() {
+                if ui.button(msg!(GuiSelectInputDirectory)).clicked() {
                     if let Some(path) = rfd::FileDialog::new().pick_folder() {
                         self.set_input(Input::Dir(path.into()));
                     }
                 }
-                if ui.button("Select input file").clicked() {
+                if ui.button(msg!(GuiSelectInputFile)).clicked() {
                     if let Some(path) = rfd::FileDialog::new().pick_file() {
                         self.set_input_from_buf(path);
                     }
                 }
             });
-            if ui.text_edit_singleline(&mut self.input_buf).lost_focus() {
+            if ui
+                .text_edit_singleline(&mut self.input_buf)
+                .on_hover_text(msg!(HelpInput))
+                .lost_focus()
+            {
                 self.set_input_from_buf(self.input_buf.clone())
             }
             ui.add_space(10.0);
 
-            if ui.button("Select output directory").clicked() {
-                if let Some(path) = rfd::FileDialog::new().pick_folder() {
-                    self.set_output(path);
+            ui.add_enabled_ui(!self.cfg.force, |ui| {
+                if ui.button(msg!(GuiSelectOutputDirectory)).clicked() {
+                    if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                        self.set_output(path);
+                    }
+                }
+                if ui
+                    .text_edit_singleline(&mut self.output_buf)
+                    .on_hover_text(msg!(GuiSaveDirectory))
+                    .lost_focus()
+                {
+                    match Output::new(&self.output_buf) {
+                        Ok(output) => self.set_output(output.dir),
+                        Err(e) => error!("{}: {}", Msg::GuiErrorSetOutput, e),
+                    };
+                }
+            });
+            ui.add_space(10.0);
+
+            ui.label(msg!(GuiRemoveTags)).on_hover_text(msg!(HelpTags));
+            if ui.text_edit_singleline(&mut self.tags_buf).lost_focus() {
+                let new_tags = Tags::new(&self.tags_buf);
+                self.tags_buf = new_tags.to_string();
+                if new_tags != self.cfg.tags {
+                    self.cfg.tags = new_tags;
+                    info!("{}: '{}'", Msg::GuiTagsSet, self.tags_buf);
                 }
             }
-            if ui.text_edit_singleline(&mut self.output_buf).lost_focus() {
-                match Output::new(&self.output_buf) {
-                    Ok(output) => self.set_output(output.dir),
-                    Err(e) => error!("Output set error: {e}"),
-                };
-            }
             ui.add_space(10.0);
 
-            ui.label("Remove tags:")
-                .on_hover_text("Remove the following tags from a book structure");
-            if ui.text_edit_singleline(&mut self.tags_buf).lost_focus() {
-                self.cfg.tags = Tags::new(&self.tags_buf);
-                self.tags_buf = self.cfg.tags.to_string();
-                info!("Tags set: '{}'", self.tags_buf);
-            }
-            ui.add_space(10.0);
+            let input_is_dir = matches!(self.cfg.input, Input::Dir(_));
 
-            ui.horizontal(|ui| {
-                ui.label("Parallel jobs:")
-                    .on_hover_text("Max parallel jobs (multithreading)");
-                ui.add(egui::DragValue::new(&mut self.cfg.jobs).range(1..=255));
-            });
+            ui.add_enabled_ui(input_is_dir, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(msg!(GuiMultithreading));
+                    ui.add(egui::DragValue::new(&mut self.cfg.jobs).range(1..=255));
+                });
 
-            ui.horizontal(|ui| {
-                ui.label("Recursive:")
-                    .on_hover_text("Recursive book search up to N");
-                ui.add(egui::DragValue::new(&mut self.cfg.recursive).range(0..=255));
+                ui.horizontal(|ui| {
+                    ui.label(msg!(GuiRecursiveSearch))
+                        .on_hover_text(msg!(HelpRecursive));
+                    ui.add(egui::DragValue::new(&mut self.cfg.recursive).range(0..=255));
+                });
             });
             ui.add_space(10.0);
 
             ui.horizontal(|ui| {
                 ui.add_enabled_ui(!self.cfg.unzip, |ui| {
                     ui.checkbox(&mut self.cfg.zip, "zip")
-                        .on_hover_text("Compress fb2 to fb2.zip");
+                        .on_hover_text(msg!(HelpZip));
                 });
                 ui.add_enabled_ui(!self.cfg.zip, |ui| {
                     ui.checkbox(&mut self.cfg.unzip, "unzip")
-                        .on_hover_text("Uncompress fb2.zip to fb2");
+                        .on_hover_text(msg!(HelpUnzip));
                 });
             });
 
-            ui.checkbox(&mut self.cfg.force, "force-overwrite")
-                .on_hover_text("Force overwrite input books");
-            ui.checkbox(&mut self.cfg.exit_on_err, "stop-on-error")
-                .on_hover_text("Skip clean next books on error");
+            ui.checkbox(&mut self.cfg.force, msg!(GuiOverwrite))
+                .on_hover_text(msg!(HelpForce));
+
+            ui.add_enabled_ui(input_is_dir, |ui| {
+                ui.checkbox(&mut self.cfg.exit_on_err, msg!(GuiStopOnError))
+                    .on_hover_text(msg!(HelpExitOnError));
+            });
 
             ui.separator();
-            ui.label("Log:");
+            ui.label(msg!(GuiLog));
             egui::ScrollArea::vertical()
                 .stick_to_bottom(true)
                 .max_height(150.0)
@@ -154,14 +188,16 @@ impl App {
     fn set_input_from_buf(&mut self, buf: impl AsRef<Path>) {
         match Input::new(buf) {
             Ok(input) => self.set_input(input),
-            Err(e) => error!("input set: '{e}'"),
+            Err(e) => error!("{}: '{}'", Msg::GuiErrorSetInput, e),
         }
     }
 
     fn set_input(&mut self, input: Input) {
         self.input_buf = input.display().to_string();
-        self.cfg.input = input;
-        info!("Input set: '{}'", self.input_buf);
+        if input != self.cfg.input {
+            self.cfg.input = input;
+            info!("{}: '{}'", Msg::GuiInputSet, self.input_buf);
+        }
 
         if !self.is_output_set {
             if let Ok(output) = Output::try_from_input(&self.cfg.input) {
@@ -172,13 +208,16 @@ impl App {
     }
 
     fn set_output(&mut self, dir: impl Into<Box<Path>>) {
-        self.cfg.output = Output {
+        let new = Output {
             dir: dir.into(),
             ..Default::default()
         };
-        self.output_buf = self.cfg.output.dir.display().to_string();
-        self.is_output_set = true;
-        info!("Output set: '{}'", self.output_buf);
+        self.output_buf = new.dir.display().to_string();
+        if new != self.cfg.output {
+            self.cfg.output = new;
+            self.is_output_set = true;
+            info!("{}: '{}'", Msg::GuiOutputSet, self.output_buf);
+        }
     }
 }
 

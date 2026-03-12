@@ -1,6 +1,6 @@
 # fb2-clean
 
-A simple GUI/CLI utility for clean fb2 books.
+A simple GUI/CLI utility to clean fb2 books.
 
 [![Tests](https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml/badge.svg)](
 https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml)

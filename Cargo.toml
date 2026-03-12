@@ -1,18 +1,20 @@
 [package]
 name = "fb2-clean"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
-description = "A simple GUI/CLI utility for clean fb2 books."
+description = "A simple GUI/CLI utility to clean fb2 books."
 repository = "https://github.com/nujievik/fb2-clean"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
 categories = ["command-line-utilities"]
+default-run = "fb2-clean"
 
 include = [
     "Cargo.toml",
     "README.md",
+    "assets/logo.png",
     "src/**",
 ]
 
@@ -37,6 +39,7 @@ eframe = { version = "0.33.3", optional = true }
 either = "1"
 image = { version = "0.25", optional = true }
 indexmap = "2"
+lazy-regex = "3"
 log = "0.4"
 quick-xml = "0.38"
 rayon = "1"
@@ -44,3 +47,6 @@ rfd = { version = "0.17", optional = true }
 supports-color = { version = "3", optional = true }
 walkdir = "2"
 zip = "6"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winnls"] }

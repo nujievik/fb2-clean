@@ -1,4 +1,4 @@
-use log::{Level, Metadata, Record};
+use log::{Metadata, Record};
 use std::{
     collections::VecDeque,
     sync::{Arc, Mutex},
@@ -31,21 +31,12 @@ impl log::Log for GuiLogger {
             buf.pop_front();
         }
 
-        buf.push_back(format!("{}{}", Self::prefix(record.level()), record.args()));
+        let prf = crate::log_prefix_root(record.level());
+        let space = if prf.is_empty() { "" } else { ": " };
+        buf.push_back(format!("{}{}{}", prf, space, record.args()));
+
         self.ctx.request_repaint();
     }
 
     fn flush(&self) {}
-}
-
-impl GuiLogger {
-    fn prefix(level: Level) -> &'static str {
-        match level {
-            Level::Error => "Error: ",
-            Level::Warn => "Warning: ",
-            Level::Debug => "Debug: ",
-            Level::Trace => "Trace: ",
-            _ => "",
-        }
-    }
 }

@@ -1,5 +1,5 @@
 use super::Config;
-use crate::{Input, InputFile, InputFileType, Result, remove_xml_tags};
+use crate::{Input, InputFile, InputFileType, Msg, Result, remove_xml_tags};
 use either::Either;
 use log::{error, info, warn};
 use quick_xml::{Reader, Writer};
@@ -33,7 +33,9 @@ impl Config {
 
         if !is_found_any.is_completed() {
             if let Input::Dir(d) = &self.input {
-                warn!("not found any fb2 in directory '{}'", d.display());
+                return Err(
+                    format!("{} '{}'", Msg::NotFoundAnyBookInDirectory, d.display()).into(),
+                );
             }
         }
 
@@ -86,7 +88,7 @@ fn job_src_dests(
             match it.as_mut().and_then(|it| it.next()) {
                 Some((subdirs, src)) => {
                     is_found_any.call_once(|| {
-                        info!("Cleaning input files...");
+                        info!("{}...", Msg::CleaningBooks);
                     });
                     let dest = Dest::new(cfg, subdirs, &src);
                     (src, dest)
@@ -94,12 +96,14 @@ fn job_src_dests(
                 None => break,
             }
         };
-        info!("Cleaning '{}'...", src.path.display());
+        info!("{} '{}'...", Msg::Cleaning, src.path.display());
 
         if !cfg.force && dest.path.exists() {
             warn!(
-                "output is already exists '{}'. Skipping",
-                dest.path.display()
+                "{} '{}'. {}",
+                Msg::FileIsAlreadyExists,
+                dest.path.display(),
+                Msg::Skipping,
             );
             continue;
         }
@@ -109,11 +113,15 @@ fn job_src_dests(
         {
             Err(e) if cfg.exit_on_err => return Err(e.to_string()),
             Err(e) => {
-                error!("{}. Skipping", e);
+                error!("{}. {}", e, Msg::Skipping);
                 continue;
             }
             Ok(()) => {
-                info!("Success cleaned and saved to '{}'", dest.path.display())
+                info!(
+                    "{} '{}'",
+                    Msg::SuccessCleanedAndSavedTo,
+                    dest.path.display()
+                )
             }
         }
 
@@ -125,13 +133,13 @@ fn job_src_dests(
 }
 
 fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
-    info!("\nOverwriting input files...");
+    info!("\n{}...", Msg::OverwritingBooks);
 
     for (src, dest) in &src_dests {
-        info!("Overwriting '{}'...", src.path.display());
+        info!("{} '{}'...", Msg::Overwriting, src.path.display());
         match dest.force_overwrite(&src) {
-            Ok(()) => info!("Success overwrited from '{}'", dest.path.display()),
-            Err(e) => error!("fail overwrite: {}", e),
+            Ok(()) => info!("{} '{}'", Msg::SuccessOverwritedFrom, dest.path.display()),
+            Err(e) => error!("{}: {}", Msg::Overwriting, e),
         }
     }
 
@@ -145,7 +153,7 @@ fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
 
     for d in dirs {
         if let Err(e) = fs::remove_dir(&d) {
-            error!("fail remove temp directory '{}': {}", d.display(), e);
+            error!("{} '{}': {}", Msg::RemovingTempDirectory, d.display(), e);
         }
     }
 }
@@ -176,7 +184,9 @@ fn try_reader_writer<'a>(
                         })
                         .unwrap_or(false)
                 })
-                .ok_or_else(|| format!("fb2 not found in archive '{}'", src.path.display()))?;
+                .ok_or_else(|| {
+                    format!("{} '{}'", Msg::NotFoundAnyFb2InArchive, src.path.display())
+                })?;
 
             let fb2_file = zip.by_index(fb2_index)?;
             Reader::from_reader(Box::new(BufReader::new(fb2_file)) as Box<dyn BufRead>)
@@ -253,13 +263,13 @@ impl Dest {
         if let Err(_) = fs::rename(&self.path, &force_path) {
             fs::copy(&self.path, &force_path)?;
             if let Err(e) = fs::remove_file(&self.path) {
-                error!("fail remove temp file '{}': {}", self.path.display(), e);
+                error!("{} '{}': {}", Msg::RemovingTempFile, self.path.display(), e);
             }
         }
 
         if force_path != &*src.path {
             if let Err(e) = fs::remove_file(&src.path) {
-                error!("fail remove input file '{}': {}", src.path.display(), e);
+                error!("{} '{}': {}", Msg::RemovingInputFile, src.path.display(), e);
             }
         }
         Ok(())
