@@ -30,6 +30,7 @@ fb2-clean-* archive for your system.
 
 ![cli-example](https://raw.githubusercontent.com/nujievik/fb2-clean/main/assets/cli-example.png)
 
+
 ## Default Behaviour
 
 - Saves cleaned files to the **cleaned** subdirectory.
@@ -46,14 +47,15 @@ Run `fb2-clean -h` to display help.
 | Option                  | Description                       |
 |-------------------------|-----------------------------------|
 | `-i, --input <path>`    | Input directory OR file           |
-| `-o, --output <dir>`    | Output directory                  |
-| `-r, --recursive [<n>]` | Recursive file search `[up to n]` |
-| `-t, --tags <n[,m...]>` | Remove tags                       |
-| `-z, --zip`             | Compress fb2 to fb2.zip           |
-| `-Z, --unzip`           | Uncompress fb2.zip to fb2         |
-| `-f, --force`           | Force overwrite input files       |
-| `-e, --exit-on-err`     | Skip clean next files on error    |
-| `-j, --jobs <n>` | Max parallel jobs |
+| `-o, --output <dir>` | Save output books to directory |
+| `-r, --recursive [<n>]` | Recursive book search `[up to n]` |
+| `-t, --tags <n[,m...]>` | Remove tags from book structure |
+| `-z, --zip` | Save output books as fb2.zip |
+| `-Z, --unzip` | Save output books as fb2 |
+| `-f, --force` | Overwrite input books |
+| `-e, --exit-on-err` | Skip clean next books on error |
+| `-j, --jobs <n>` | Max parallel jobs (multithreading) |
+| `-l, --lang <lng>` | Set log language |
 
 
 ## Manual Build 🤓
@@ -72,7 +74,7 @@ cd fb2-clean
     ```
     cargo build --release --bin Fb2CleanGui --no-default-features --features gui
     ```
-    
+
     - CLI version:
     ```
     cargo build --release
