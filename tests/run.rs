@@ -46,7 +46,7 @@ fn fb2_zip_file() {
 fn recursive() {
     let i = data("recursive").to_str().unwrap().to_owned();
     let o = temp("recursive").to_str().unwrap().to_owned();
-    run(&["-e", "-i", &i, "-o", &o, "--recursive"]);
+    run(&["-e", "-i", &i, "-o", &o, "--recursive", "16"]);
 
     for f in ["dummy.fb2", "1/dummy.fb2", "1/2/3/dummy.fb2"] {
         let f = temp(&format!("recursive/{}", f));
@@ -91,9 +91,9 @@ fn force() {
 fn force_recursive() {
     let i = data("recursive").to_str().unwrap().to_owned();
     let o = temp("force_recursive").to_str().unwrap().to_owned();
-    run(&["-e", "-i", &i, "-o", &o, "--recursive"]);
+    run(&["-e", "-i", &i, "-o", &o, "--recursive", "16"]);
 
-    let c = run(&["-ef", "-i", &o, "--recursive"]);
+    let c = run(&["-ef", "-i", &o, "--recursive", "16"]);
     c.output.remove_created_dirs();
     assert!(!fs::exists(c.output.dir).unwrap());
 }

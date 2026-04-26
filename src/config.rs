@@ -1,3 +1,4 @@
+mod default;
 pub(crate) mod input;
 pub(crate) mod output;
 mod run;
@@ -8,7 +9,7 @@ use output::Output;
 use tags::Tags;
 
 /// Clean configuration.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub struct Config {
     pub input: Input,

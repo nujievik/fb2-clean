@@ -21,7 +21,7 @@ fn empty_args() {
 
     assert_eq!(c.input, Input::Dir(idir));
     assert_eq!(c.output, o);
-    assert_eq!(c.recursive, 0);
+    assert_eq!(c.recursive, 16);
     assert_eq!(c.tags, Tags::default());
     assert!(!c.zip);
     assert!(!c.unzip);
@@ -81,16 +81,11 @@ fn output() {
 
 #[test]
 fn recursive() {
-    let mut c = cfg(&["--recursive"]);
-    assert_eq!(16, c.recursive);
-    c.recursive = 0;
-    assert_eq!(c, cfg(&[]));
-
-    for n in [1, 2, 8] {
+    for n in [0, 1, 2, 8] {
         let mut c = cfg(&["--recursive", &n.to_string()]);
         assert_eq!(n, c.recursive);
-        c.recursive = 0;
-        assert_eq!(c, cfg(&[]));
+        c.recursive = 16;
+        eq_empty_without_io(&c);
     }
 }
 
@@ -158,9 +153,8 @@ fn aliases_io_tags() {
 }
 
 #[test]
-fn aliases() {
+fn flag_aliases() {
     [
-        vec!["-r", "--recursive"],
         vec!["-z", "--zip"],
         vec!["-Z", "--unzip", "--no-zip"],
         vec!["-f", "--force"],
@@ -174,4 +168,9 @@ fn aliases() {
             assert_eq!(&first, &cfg(&[x]));
         }
     })
+}
+
+#[test]
+fn recursive_alias() {
+    assert_eq!(cfg(&["--recursive", "16"]), cfg(&["-r", "16"]));
 }

@@ -38,7 +38,7 @@ impl_msg_as_str!(
     HelpInput => "Input directory OR file",
     HelpOutput => "Save output books to directory",
     HelpJobs => "Max parallel jobs (multithreading)",
-    HelpRecursive => "Recursive book search [up to n]",
+    HelpRecursive => "Search books in nested directories (up to n level)",
     HelpTags => "Remove tags from book structure",
     HelpZip => "Save output books as fb2.zip",
     HelpUnzip => "Save output books as fb2",

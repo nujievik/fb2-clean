@@ -1,6 +1,6 @@
 [package]
 name = "fb2-clean"
-version = "0.3.1"
+version = "0.4.0-dev"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"

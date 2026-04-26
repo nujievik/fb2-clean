@@ -35,17 +35,19 @@ impl FromArgMatches for Config {
 
         let input = match m.remove_one::<Input>("input") {
             Some(i) => i,
-            None => Input::new(".").unwrap(),
+            None => Input::default(),
         };
         let output = match m.remove_one::<Output>("output") {
             Some(o) => o,
-            None => Output::try_from_input(&input).unwrap(),
+            None => Output::try_from_input(&input).unwrap_or_default(),
         };
 
         Ok(Config {
             input,
             output,
-            recursive: *m.get_one::<u8>("recursive").unwrap_or(&0),
+            recursive: *m
+                .get_one::<u8>("recursive")
+                .unwrap_or(&Self::default_recursive()),
             tags: m
                 .remove_one::<Tags>("tags")
                 .unwrap_or_else(|| Tags::default()),
@@ -92,9 +94,7 @@ impl CommandFactory for Config {
                     .long("recursive")
                     .value_name("n")
                     .help(msg!(HelpRecursive))
-                    .num_args(0..=1)
-                    .default_missing_value("16")
-                    .value_parser(value_parser!(u8).range(1..)),
+                    .value_parser(value_parser!(u8)),
             )
             .arg(
                 Arg::new("tags")

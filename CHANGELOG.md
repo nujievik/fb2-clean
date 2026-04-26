@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Default recursive search to 16 (was 0).
+- CLI: --recursive must contains a value.
+
 ## [0.3.1] - 2026-03-12
 
 ### Added
