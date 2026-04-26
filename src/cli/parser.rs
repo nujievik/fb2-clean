@@ -55,7 +55,7 @@ impl FromArgMatches for Config {
             unzip: m.get_flag("unzip"),
             overwrite: m.get_flag("overwrite"),
             exit_on_err: m.get_flag("exit-on-err"),
-            jobs: *m.get_one::<u8>("jobs").unwrap_or(&1),
+            jobs: *m.get_one::<u64>("jobs").unwrap_or(&Self::default_jobs()),
         })
     }
 
@@ -141,7 +141,7 @@ impl CommandFactory for Config {
                     .long("jobs")
                     .value_name("n")
                     .help(msg!(HelpJobs))
-                    .value_parser(value_parser!(u8).range(1..)),
+                    .value_parser(value_parser!(u64).range(1..)),
             )
             .next_help_heading("Other")
             .arg(

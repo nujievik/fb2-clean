@@ -27,6 +27,7 @@ fn empty_args() {
     assert!(!c.unzip);
     assert!(!c.overwrite);
     assert!(!c.exit_on_err);
+    assert_eq!(c.jobs, rayon::current_num_threads() as u64);
 }
 
 fn eq_empty_without_io(c: &Config) {
@@ -37,6 +38,7 @@ fn eq_empty_without_io(c: &Config) {
     assert_eq!(c.unzip, EMPTY.unzip);
     assert_eq!(c.overwrite, EMPTY.overwrite);
     assert_eq!(c.exit_on_err, EMPTY.exit_on_err);
+    assert_eq!(c.jobs, EMPTY.jobs);
 }
 
 #[test]

@@ -138,7 +138,7 @@ impl eframe::App for App {
             ui.add_enabled_ui(input_is_dir, |ui| {
                 ui.horizontal(|ui| {
                     ui.label(msg!(GuiMultithreading));
-                    ui.add(egui::DragValue::new(&mut self.cfg.jobs).range(1..=255));
+                    ui.add(egui::DragValue::new(&mut self.cfg.jobs).range(1..=Config::default_jobs()));
                 });
 
                 ui.horizontal(|ui| {

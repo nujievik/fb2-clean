@@ -20,5 +20,5 @@ pub struct Config {
     pub unzip: bool,
     pub overwrite: bool,
     pub exit_on_err: bool,
-    pub jobs: u8,
+    pub jobs: u64,
 }

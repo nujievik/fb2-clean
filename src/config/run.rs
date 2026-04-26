@@ -20,8 +20,9 @@ impl Config {
     pub fn run(&self) -> Result<()> {
         let is_found_any = Once::new();
         let it = Mutex::new(self.subdirs_src_iter());
+        let jobs = self.jobs.min(Self::default_jobs());
 
-        let src_dests: Vec<(InputFile, Dest)> = (0..self.jobs)
+        let src_dests: Vec<(InputFile, Dest)> = (0..jobs)
             .into_par_iter()
             .map(|_| job_src_dests(self, &is_found_any, &it))
             .collect::<std::result::Result<Vec<_>, String>>()
