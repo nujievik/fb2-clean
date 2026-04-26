@@ -53,7 +53,7 @@ impl FromArgMatches for Config {
                 .unwrap_or_else(|| Tags::default()),
             zip: m.get_flag("zip"),
             unzip: m.get_flag("unzip"),
-            force: m.get_flag("force"),
+            overwrite: m.get_flag("overwrite"),
             exit_on_err: m.get_flag("exit-on-err"),
             jobs: *m.get_one::<u8>("jobs").unwrap_or(&1),
         })
@@ -121,11 +121,10 @@ impl CommandFactory for Config {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("force")
-                    .short('f')
-                    .long("force")
-                    .alias("overwrite")
-                    .help(msg!(HelpForce))
+                Arg::new("overwrite")
+                    .short('w')
+                    .long("overwrite")
+                    .help(msg!(HelpOverwrite))
                     .action(ArgAction::SetTrue),
             )
             .arg(

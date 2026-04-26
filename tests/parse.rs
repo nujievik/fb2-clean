@@ -25,7 +25,7 @@ fn empty_args() {
     assert_eq!(c.tags, Tags::default());
     assert!(!c.zip);
     assert!(!c.unzip);
-    assert!(!c.force);
+    assert!(!c.overwrite);
     assert!(!c.exit_on_err);
 }
 
@@ -35,7 +35,7 @@ fn eq_empty_without_io(c: &Config) {
     assert_eq!(&c.tags, &EMPTY.tags);
     assert_eq!(c.zip, EMPTY.zip);
     assert_eq!(c.unzip, EMPTY.unzip);
-    assert_eq!(c.force, EMPTY.force);
+    assert_eq!(c.overwrite, EMPTY.overwrite);
     assert_eq!(c.exit_on_err, EMPTY.exit_on_err);
 }
 
@@ -124,10 +124,10 @@ fn zip_unzip_conflict() {
 }
 
 #[test]
-fn force() {
-    let mut c = cfg(&["--force"]);
-    assert!(c.force);
-    c.force = false;
+fn overwrite() {
+    let mut c = cfg(&["--overwrite"]);
+    assert!(c.overwrite);
+    c.overwrite = false;
     assert_eq!(c, cfg(&[]));
 }
 
@@ -157,7 +157,7 @@ fn flag_aliases() {
     [
         vec!["-z", "--zip"],
         vec!["-Z", "--unzip", "--no-zip"],
-        vec!["-f", "--force"],
+        vec!["-w", "--overwrite"],
         vec!["-e", "--exit-on-err", "--exit-on-error"],
     ]
     .iter()

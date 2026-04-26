@@ -18,7 +18,7 @@ pub struct Config {
     pub tags: Tags,
     pub zip: bool,
     pub unzip: bool,
-    pub force: bool,
+    pub overwrite: bool,
     pub exit_on_err: bool,
     pub jobs: u8,
 }

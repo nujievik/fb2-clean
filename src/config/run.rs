@@ -98,7 +98,7 @@ fn job_src_dests(
         };
         info!("{} '{}'...", Msg::Cleaning, src.path.display());
 
-        if !cfg.force && dest.path.exists() {
+        if !cfg.overwrite && dest.path.exists() {
             warn!(
                 "{} '{}'. {}",
                 Msg::FileIsAlreadyExists,
@@ -125,7 +125,7 @@ fn job_src_dests(
             }
         }
 
-        if cfg.force {
+        if cfg.overwrite {
             src_dests.push((src, dest));
         }
     }

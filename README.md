@@ -48,11 +48,11 @@ Run `fb2-clean -h` to display help.
 |-------------------------|-----------------------------------|
 | `-i, --input <path>`    | Input directory OR file           |
 | `-o, --output <dir>` | Save output books to directory |
-| `-r, --recursive [<n>]` | Recursive book search `[up to n]` |
+| `-r, --recursive <n>` | Search books in nested directories (up to n level) |
 | `-t, --tags <n[,m...]>` | Remove tags from book structure |
 | `-z, --zip` | Save output books as fb2.zip |
 | `-Z, --unzip` | Save output books as fb2 |
-| `-f, --force` | Overwrite input books |
+| `-w, --overwrite` | Overwrite input books |
 | `-e, --exit-on-err` | Skip clean next books on error |
 | `-j, --jobs <n>` | Max parallel jobs (multithreading) |
 | `-l, --lang <lng>` | Set log language |

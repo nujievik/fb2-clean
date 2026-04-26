@@ -80,20 +80,20 @@ fn unzip() {
 }
 
 #[test]
-fn force() {
-    let i = unzip_to("force");
-    run(&["-ef", "-i", &i, "--zip"]);
-    assert_ne_empty("force/book.fb2.zip");
+fn overwrite() {
+    let i = unzip_to("overwrite");
+    run(&["-ew", "-i", &i, "--zip"]);
+    assert_ne_empty("overwrite/book.fb2.zip");
     assert!(!fs::exists(i).unwrap());
 }
 
 #[test]
-fn force_recursive() {
+fn overwrite_recursive() {
     let i = data("recursive").to_str().unwrap().to_owned();
-    let o = temp("force_recursive").to_str().unwrap().to_owned();
+    let o = temp("overwrite_recursive").to_str().unwrap().to_owned();
     run(&["-e", "-i", &i, "-o", &o, "--recursive", "16"]);
 
-    let c = run(&["-ef", "-i", &o, "--recursive", "16"]);
+    let c = run(&["-ew", "-i", &o, "--recursive", "16"]);
     c.output.remove_created_dirs();
     assert!(!fs::exists(c.output.dir).unwrap());
 }

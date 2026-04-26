@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Default recursive search to 16 (was 0).
+- Rename --force to --overwrite.
 - CLI: --recursive must contains a value.
 
 ## [0.3.1] - 2026-03-12

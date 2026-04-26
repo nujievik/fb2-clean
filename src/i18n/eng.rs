@@ -42,7 +42,7 @@ impl_msg_as_str!(
     HelpTags => "Remove tags from book structure",
     HelpZip => "Save output books as fb2.zip",
     HelpUnzip => "Save output books as fb2",
-    HelpForce => "Overwrite input books",
+    HelpOverwrite => "Overwrite input books",
     HelpExitOnError => "Skip clean next books on error",
     HelpLang => "Set log language",
     HelpVersion => "Show version",

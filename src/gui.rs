@@ -103,7 +103,7 @@ impl eframe::App for App {
             }
             ui.add_space(10.0);
 
-            ui.add_enabled_ui(!self.cfg.force, |ui| {
+            ui.add_enabled_ui(!self.cfg.overwrite, |ui| {
                 if ui.button(msg!(GuiSelectOutputDirectory)).clicked() {
                     if let Some(path) = rfd::FileDialog::new().pick_folder() {
                         self.set_output(path);
@@ -160,8 +160,8 @@ impl eframe::App for App {
                 });
             });
 
-            ui.checkbox(&mut self.cfg.force, msg!(GuiOverwrite))
-                .on_hover_text(msg!(HelpForce));
+            ui.checkbox(&mut self.cfg.overwrite, msg!(GuiOverwrite))
+                .on_hover_text(msg!(HelpOverwrite));
 
             ui.add_enabled_ui(input_is_dir, |ui| {
                 ui.checkbox(&mut self.cfg.exit_on_err, msg!(GuiStopOnError))

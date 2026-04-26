@@ -9,7 +9,7 @@ impl Default for Config {
             tags: Default::default(),
             zip: false,
             unzip: false,
-            force: false,
+            overwrite: false,
             exit_on_err: false,
             jobs: 1,
         }

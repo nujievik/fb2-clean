@@ -70,7 +70,7 @@ pub enum Msg {
     HelpTags,
     HelpZip,
     HelpUnzip,
-    HelpForce,
+    HelpOverwrite,
     HelpExitOnError,
     HelpJobs,
     HelpLang,
