@@ -44,7 +44,7 @@ impl CliLogger {
 
 impl Log for CliLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        metadata.level() <= Level::Trace
+        metadata.target().starts_with("fb2_clean")
     }
 
     fn log(&self, record: &Record) {

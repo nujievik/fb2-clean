@@ -12,8 +12,8 @@ pub struct GuiLogger {
 }
 
 impl log::Log for GuiLogger {
-    fn enabled(&self, _: &Metadata) -> bool {
-        true
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        metadata.target().starts_with("fb2_clean")
     }
 
     fn log(&self, record: &Record) {
