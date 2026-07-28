@@ -1,11 +1,11 @@
-use crate::{Config, Input, InputPath, Lang, Msg, Output, Tags, msg};
+use crate::{Config, Input, InputFile, InputFileType, Lang, Msg, Output, Tags, msg};
 use clap::{
     Arg, ArgAction, ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser,
     builder::{TypedValueParser, ValueParser},
     error::{ContextKind, ContextValue, ErrorKind},
     value_parser,
 };
-use std::{ffi::OsStr, str::FromStr};
+use std::{ffi::OsStr, fs, path::Path, str::FromStr};
 
 type Result<T> = std::result::Result<T, clap::Error>;
 
@@ -239,5 +239,44 @@ impl Tags {
     /// Always returns `Ok`.
     fn fallible_new(os: impl AsRef<OsStr>) -> std::result::Result<Tags, String> {
         Ok(Self::new(os))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum InputPath {
+    Dir(Box<Path>),
+    File(InputFile),
+}
+
+impl InputPath {
+    pub(crate) fn new(path: impl AsRef<Path>) -> crate::Result<InputPath> {
+        let path = fs::canonicalize(path)?.into_boxed_path();
+
+        if path.is_dir() {
+            Ok(Self::Dir(path))
+        } else if let Some(ty) = InputFileType::get_new(&path) {
+            Ok(Self::File(InputFile { ty, path }))
+        } else {
+            Err("file has unsupported extension".into())
+        }
+    }
+
+    pub(crate) fn is_dir(&self) -> bool {
+        matches!(self, Self::Dir(_))
+    }
+
+    pub(crate) fn into_boxed_path(self) -> Box<Path> {
+        match self {
+            Self::Dir(p) => p,
+            Self::File(InputFile { path, .. }) => path,
+        }
+    }
+
+    // panic on Self::Dir
+    pub(crate) fn into_input_file(self) -> InputFile {
+        match self {
+            Self::Dir(_) => panic!("must be InputPath::File"),
+            Self::File(f) => f,
+        }
     }
 }

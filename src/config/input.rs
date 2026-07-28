@@ -9,12 +9,6 @@ pub enum Input {
     Files(Vec<InputFile>),
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum InputPath {
-    Dir(Box<Path>),
-    File(InputFile),
-}
-
 /// Input file.
 #[derive(Clone, Debug, Hash, Eq, PartialEq)]
 pub struct InputFile {
@@ -69,39 +63,6 @@ impl Input {
             Ok(Self::Files(vec![InputFile { ty, path }]))
         } else {
             Err("File has unsupported extension".into())
-        }
-    }
-}
-
-impl InputPath {
-    pub(crate) fn new(path: impl AsRef<Path>) -> Result<InputPath> {
-        let path = fs::canonicalize(path)?.into_boxed_path();
-
-        if path.is_dir() {
-            Ok(Self::Dir(path))
-        } else if let Some(ty) = InputFileType::get_new(&path) {
-            Ok(Self::File(InputFile { ty, path }))
-        } else {
-            Err("file has unsupported extension".into())
-        }
-    }
-
-    pub(crate) fn is_dir(&self) -> bool {
-        matches!(self, Self::Dir(_))
-    }
-
-    pub(crate) fn into_boxed_path(self) -> Box<Path> {
-        match self {
-            Self::Dir(p) => p,
-            Self::File(InputFile { path, .. }) => path,
-        }
-    }
-
-    // panic on Self::Dir
-    pub(crate) fn into_input_file(self) -> InputFile {
-        match self {
-            Self::Dir(_) => panic!("must be InputPath::File"),
-            Self::File(f) => f,
         }
     }
 }

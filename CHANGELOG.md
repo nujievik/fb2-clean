@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-07-28
+
+### Changed
+- GUI structure.
+- Single input file to many files.
+- Log messages.
+
+### Fixed
+- Remove ANSI-codes in windows logs.
+
+
 ## [0.4.1] - 2026-04-27
 
 ### Fixed
@@ -17,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Default jobs to the number of CPU threads.
 - Rename --force to --overwrite.
 - CLI: --recursive must contains a value.
+
 
 ## [0.3.1] - 2026-03-12
 
