@@ -20,6 +20,8 @@ pub use config::{
 pub use i18n::{Lang, Msg};
 pub use remove_xml_tags::remove_xml_tags;
 
+use config::input::InputPath;
+
 fn log_prefix_root(level: log::Level) -> &'static str {
     use log::Level;
     let msg = match level {

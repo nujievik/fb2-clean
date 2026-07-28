@@ -1,6 +1,6 @@
 mod logger;
 
-use crate::{Config, Input, InputFile, Lang, Msg, Output, Result, Tags, msg};
+use crate::{Config, Input, InputFile, InputFileType, Lang, Msg, Output, Result, Tags, msg};
 use eframe::egui;
 use log::{error, info};
 use logger::{GuiLog, GuiLogger};
@@ -22,7 +22,7 @@ impl Default for App {
         let cfg = Config::default();
         App {
             log: Default::default(),
-            input_buf: cfg.input.display().to_string(),
+            input_buf: cfg.input.to_string(),
             output_buf: cfg.output.dir.display().to_string(),
             is_output_set: false,
             tags_buf: cfg.tags.to_string(),
@@ -52,7 +52,7 @@ impl eframe::App for App {
             ui.horizontal(|ui| {
                 if ui
                     .add_sized(
-                        [328.0, 32.0],
+                        [285.0, 32.0],
                         egui::Button::new(egui::RichText::new(msg!(GuiStart)).size(18.0)),
                     )
                     .clicked()
@@ -82,42 +82,45 @@ impl eframe::App for App {
             }
 
             ui.add_space(10.0);
+            ui.label(msg!(GuiSelectToClean));
             ui.horizontal(|ui| {
-                if ui.button(msg!(GuiSelectInputDirectory)).clicked() {
+                if ui
+                    .button(msg!(GuiDirectory))
+                    .on_hover_text(msg!(GuiSelectDirectoryToClean))
+                    .clicked()
+                {
                     if let Some(path) = rfd::FileDialog::new().pick_folder() {
                         self.set_input(Input::Dir(path.into()));
                     }
                 }
-                if ui.button(msg!(GuiSelectInputFile)).clicked() {
-                    if let Some(path) = rfd::FileDialog::new().pick_file() {
-                        self.set_input_from_buf(path);
+                ui.label(msg!(GuiOr));
+                if ui
+                    .button(msg!(GuiFiles))
+                    .on_hover_text(msg!(GuiSelectFilesToClean))
+                    .clicked()
+                {
+                    if let Some(xs) = rfd::FileDialog::new().pick_files() {
+                        let mut files: Vec<InputFile> = Vec::with_capacity(xs.len());
+                        for x in xs {
+                            match InputFileType::get_new(&x) {
+                                Some(ty) => files.push(InputFile { ty, path: x.into() }),
+                                None => error!("unsupported file extension '{}'", x.display()),
+                            }
+                        }
+
+                        if !files.is_empty() {
+                            self.set_input(Input::Files(files));
+                        }
                     }
                 }
             });
-            if ui
-                .text_edit_singleline(&mut self.input_buf)
-                .on_hover_text(msg!(HelpInput))
-                .lost_focus()
-            {
-                self.set_input_from_buf(self.input_buf.clone())
-            }
             ui.add_space(10.0);
 
             ui.add_enabled_ui(!self.cfg.overwrite, |ui| {
-                if ui.button(msg!(GuiSelectOutputDirectory)).clicked() {
+                if ui.button(msg!(GuiSelectSaveDirectory)).clicked() {
                     if let Some(path) = rfd::FileDialog::new().pick_folder() {
                         self.set_output(path);
                     }
-                }
-                if ui
-                    .text_edit_singleline(&mut self.output_buf)
-                    .on_hover_text(msg!(GuiSaveDirectory))
-                    .lost_focus()
-                {
-                    match Output::new(&self.output_buf) {
-                        Ok(output) => self.set_output(output.dir),
-                        Err(e) => error!("{}: {}", Msg::GuiErrorSetOutput, e),
-                    };
                 }
             });
             ui.add_space(10.0);
@@ -133,14 +136,12 @@ impl eframe::App for App {
             }
             ui.add_space(10.0);
 
-            let input_is_dir = matches!(self.cfg.input, Input::Dir(_));
+            ui.horizontal(|ui| {
+                ui.label(msg!(GuiMultithreading));
+                ui.add(egui::DragValue::new(&mut self.cfg.jobs).range(1..=Config::default_jobs()));
+            });
 
-            ui.add_enabled_ui(input_is_dir, |ui| {
-                ui.horizontal(|ui| {
-                    ui.label(msg!(GuiMultithreading));
-                    ui.add(egui::DragValue::new(&mut self.cfg.jobs).range(1..=Config::default_jobs()));
-                });
-
+            ui.add_enabled_ui(matches!(self.cfg.input, Input::Dir(_)), |ui| {
                 ui.horizontal(|ui| {
                     ui.label(msg!(GuiRecursiveSearch))
                         .on_hover_text(msg!(HelpRecursive));
@@ -163,10 +164,8 @@ impl eframe::App for App {
             ui.checkbox(&mut self.cfg.overwrite, msg!(GuiOverwrite))
                 .on_hover_text(msg!(HelpOverwrite));
 
-            ui.add_enabled_ui(input_is_dir, |ui| {
-                ui.checkbox(&mut self.cfg.exit_on_err, msg!(GuiStopOnError))
-                    .on_hover_text(msg!(HelpExitOnError));
-            });
+            ui.checkbox(&mut self.cfg.exit_on_err, msg!(GuiStopOnError))
+                .on_hover_text(msg!(HelpExitOnError));
 
             ui.separator();
             ui.label(msg!(GuiLog));
@@ -185,18 +184,11 @@ impl eframe::App for App {
 }
 
 impl App {
-    fn set_input_from_buf(&mut self, buf: impl AsRef<Path>) {
-        match Input::new(buf) {
-            Ok(input) => self.set_input(input),
-            Err(e) => error!("{}: '{}'", Msg::GuiErrorSetInput, e),
-        }
-    }
-
     fn set_input(&mut self, input: Input) {
-        self.input_buf = input.display().to_string();
+        self.input_buf = input.to_string();
         if input != self.cfg.input {
             self.cfg.input = input;
-            info!("{}: '{}'", Msg::GuiInputSet, self.input_buf);
+            info!("{}:\n'{}'", Msg::GuiSelectedToClean, self.input_buf);
         }
 
         if !self.is_output_set {
@@ -216,7 +208,7 @@ impl App {
         if new != self.cfg.output {
             self.cfg.output = new;
             self.is_output_set = true;
-            info!("{}: '{}'", Msg::GuiOutputSet, self.output_buf);
+            info!("{}:\n'{}'", Msg::GuiSelectedSaveDirectory, self.output_buf);
         }
     }
 }
@@ -229,11 +221,14 @@ fn start(cfg: &mut Config) -> Result<()> {
 }
 
 impl Input {
-    fn display(&self) -> std::path::Display<'_> {
-        let path = match self {
-            Self::Dir(path) => path,
-            Self::File(InputFile { path, .. }) => path,
-        };
-        path.display()
+    fn to_string(&self) -> String {
+        match self {
+            Self::Dir(path) => path.display().to_string(),
+            Self::Files(xs) => xs
+                .iter()
+                .map(|p| p.path.display().to_string())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        }
     }
 }

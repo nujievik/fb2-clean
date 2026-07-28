@@ -1,6 +1,6 @@
 # fb2-clean
 
-A simple GUI/CLI utility to clean fb2 books.
+A simple GUI/CLI utility to remove images from fb2 books.
 
 [![Tests](https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml/badge.svg)](
 https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml)
@@ -46,14 +46,14 @@ Run `fb2-clean -h` to display help.
 
 | Option                  | Description                       |
 |-------------------------|-----------------------------------|
-| `-i, --input <path>`    | Input directory OR file           |
-| `-o, --output <dir>` | Save output books to directory |
-| `-r, --recursive <n>` | Search books in nested directories (up to n level) |
-| `-t, --tags <n[,m...]>` | Remove tags from book structure |
-| `-z, --zip` | Save output books as fb2.zip |
-| `-Z, --unzip` | Save output books as fb2 |
-| `-w, --overwrite` | Overwrite input books |
-| `-e, --exit-on-err` | Skip clean next books on error |
+| `-i, --input <path>` | Directory with files OR file to clean |
+| `-o, --output <dir>` | Save output files to directory |
+| `-r, --recursive <n>` |  Find files in nested directories (up to n level) |
+| `-t, --tags <n[,m...]>` | Remove tags from file structure |
+| `-z, --zip` | Save output files as fb2.zip |
+| `-Z, --unzip` | Save output files as fb2 |
+| `-w, --overwrite` | Overwrite input files |
+| `-e, --exit-on-err` | Don't clean next files on error |
 | `-j, --jobs <n>` | Max parallel jobs (multithreading) |
 | `-l, --lang <lng>` | Set log language |
 

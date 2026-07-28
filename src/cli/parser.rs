@@ -1,4 +1,4 @@
-use crate::{Config, Input, Lang, Msg, Output, Tags, msg};
+use crate::{Config, Input, InputPath, Lang, Msg, Output, Tags, msg};
 use clap::{
     Arg, ArgAction, ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser,
     builder::{TypedValueParser, ValueParser},
@@ -33,10 +33,27 @@ impl FromArgMatches for Config {
             std::process::exit(0);
         }
 
-        let input = match m.remove_one::<Input>("input") {
-            Some(i) => i,
+        let input = match m.remove_many::<InputPath>("input") {
             None => Input::default(),
+            Some(xs) if xs.len() == 0 => Input::default(),
+            Some(xs) => {
+                let mut paths: Vec<_> = xs.into_iter().collect();
+
+                if paths.len() > 1 && paths.iter().any(|p| p.is_dir()) {
+                    return Err(Error::raw(
+                        ErrorKind::TooManyValues,
+                        "directory must be only 1",
+                    ));
+                }
+
+                if paths[0].is_dir() {
+                    Input::Dir(paths.pop().unwrap().into_boxed_path())
+                } else {
+                    Input::Files(paths.into_iter().map(|p| p.into_input_file()).collect())
+                }
+            }
         };
+
         let output = match m.remove_one::<Output>("output") {
             Some(o) => o,
             None => Output::try_from_input(&input).unwrap_or_default(),
@@ -78,7 +95,8 @@ impl CommandFactory for Config {
                     .long("input")
                     .value_name("path")
                     .help(msg!(HelpInput))
-                    .value_parser(ValueParser::new(InputParser)),
+                    .action(ArgAction::Append)
+                    .value_parser(ValueParser::new(InputPathParser)),
             )
             .arg(
                 Arg::new("output")
@@ -213,7 +231,7 @@ macro_rules! ty_parser {
     };
 }
 
-ty_parser!(InputParser, Input, Input::new);
+ty_parser!(InputPathParser, InputPath, InputPath::new);
 ty_parser!(OutputParser, Output, Output::new);
 ty_parser!(TagsParser, Tags, Tags::fallible_new);
 

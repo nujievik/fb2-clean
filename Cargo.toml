@@ -1,10 +1,10 @@
 [package]
 name = "fb2-clean"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
-description = "A simple GUI/CLI utility to clean fb2 books."
+description = "A simple GUI/CLI utility to remove images from fb2 books."
 repository = "https://github.com/nujievik/fb2-clean"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
@@ -44,9 +44,11 @@ log = "0.4"
 quick-xml = "0.38"
 rayon = "1"
 rfd = { version = "0.17", optional = true }
-supports-color = { version = "3", optional = true }
 walkdir = "2"
 zip = "6"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winnls"] }
+
+[target.'cfg(unix)'.dependencies]
+supports-color = { version = "3", optional = true }

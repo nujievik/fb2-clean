@@ -4,7 +4,11 @@ mod common;
 use clap::Parser;
 use common::*;
 use fb2_clean::*;
-use std::{fs, path::Path, sync::LazyLock};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::LazyLock,
+};
 
 fn output_from_i(dir: &Path) -> Output {
     Output {
@@ -62,9 +66,33 @@ fn input_file() {
 
         assert_eq!(c.output.dir, i.parent().unwrap().join("cleaned").into());
         assert_eq!(c.output.len_created_dir_chain, 0);
-        assert_eq!(c.input, Input::File(InputFile { ty, path: i }));
+        assert_eq!(c.input, Input::Files(vec![InputFile { ty, path: i }]));
         eq_empty_without_io(&c);
     }
+}
+
+#[test]
+fn input_files() {
+    let mut args: Vec<String> = Vec::new();
+    let mut i_files: Vec<InputFile> = Vec::new();
+    let mut o_dir: Option<PathBuf> = None;
+
+    for &(ty, f) in ITERABLE.iter() {
+        let i = fs::canonicalize(data(f)).unwrap().into_boxed_path();
+
+        let _ = o_dir.get_or_insert(i.parent().unwrap().join("cleaned").into());
+        args.push("-i".into());
+        args.push(data(f).to_str().unwrap().into());
+        i_files.push(InputFile { ty, path: i });
+    }
+
+    let args_references: Vec<&str> = args.iter().map(|s| s.as_str()).collect();
+    let c = cfg(&args_references);
+
+    assert_eq!(c.output.dir, o_dir.unwrap().into());
+    assert_eq!(c.output.len_created_dir_chain, 0);
+    assert_eq!(c.input, Input::Files(i_files));
+    eq_empty_without_io(&c);
 }
 
 #[test]

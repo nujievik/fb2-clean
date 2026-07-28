@@ -17,15 +17,21 @@ fn iter_dir() {
 }
 
 #[test]
-fn iter_file() {
+fn iter_files() {
+    let mut files: Vec<InputFile> = Vec::new();
+
     ITERABLE.iter().for_each(|&(ty, f)| {
         let f = InputFile { ty, path: data(f) };
-        let i = Input::File(f.clone());
+        files.push(f);
+    });
 
-        let mut iter = i.iter();
-        assert_eq!(Some(f), iter.next());
-        assert_eq!(None, iter.next());
-    })
+    let mut it = Input::Files(files).iter();
+
+    ITERABLE.iter().for_each(|&(ty, f)| {
+        assert_eq!(it.next().unwrap(), InputFile { ty, path: data(f) });
+    });
+
+    assert!(it.next().is_none());
 }
 
 #[test]

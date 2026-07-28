@@ -1,14 +1,17 @@
 use log::{Level, LevelFilter, Log, Metadata, Record};
-use std::{
-    io::{self, Write},
-    sync::LazyLock,
-};
+use std::io::{self, Write};
+
+#[cfg(unix)]
+use std::sync::LazyLock;
+#[cfg(unix)]
 use supports_color::{Stream, on};
 
 static CLI_LOGGER: CliLogger = CliLogger;
 pub struct CliLogger;
 
+#[cfg(unix)]
 static STDERR_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stderr).is_some());
+#[cfg(unix)]
 static STDOUT_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stdout).is_some());
 
 impl CliLogger {
@@ -17,6 +20,7 @@ impl CliLogger {
         log::set_max_level(LevelFilter::Info);
     }
 
+    #[cfg(unix)]
     fn prf_prefix(level: Level) -> &'static str {
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31m",
@@ -31,12 +35,24 @@ impl CliLogger {
         }
     }
 
+    #[cfg(windows)]
+    fn prf_prefix(_level: Level) -> &'static str {
+        ""
+    }
+
     fn prf_suffix(level: Level) -> &'static str {
+        #[cfg(unix)]
         match level {
             Level::Error | Level::Warn if *STDERR_ON_COLOR => "\x1b[0m: ",
             Level::Error | Level::Warn => ": ",
             Level::Debug | Level::Trace if *STDOUT_ON_COLOR => "\x1b[0m: ",
             Level::Debug | Level::Trace => ": ",
+            _ => "",
+        }
+
+        #[cfg(windows)]
+        match level {
+            Level::Error | Level::Warn | Level::Debug | Level::Trace => ": ",
             _ => "",
         }
     }

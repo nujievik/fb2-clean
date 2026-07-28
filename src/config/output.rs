@@ -58,7 +58,10 @@ impl Output {
         let new = |base: &Path| Output::new(base.join("cleaned"));
         match input {
             Input::Dir(d) => new(d),
-            Input::File(f) => new(f.path.parent().unwrap_or(Path::new("."))),
+            Input::Files(xs) => new(xs
+                .get(0)
+                .and_then(|f| f.path.parent())
+                .unwrap_or(Path::new("."))),
         }
     }
 }
