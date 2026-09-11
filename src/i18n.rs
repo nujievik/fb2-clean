@@ -3,6 +3,7 @@ macro_rules! impl_msg_as_str {
         impl $crate::Msg {
             #[inline(always)]
             pub(in crate::i18n) fn $fn(self) -> &'static str {
+                #[allow(deprecated)]
                 match self {
                     $( Self::$enum_var => $text ),*
                 }
@@ -29,24 +30,19 @@ pub enum Lang {
 #[derive(Copy, Clone, Debug)]
 #[non_exhaustive]
 pub enum Msg {
-    Cleaning,
-    CleaningBooks,
-    FileIsAlreadyExists,
-    NotFoundAValidLangCode,
-    NotFoundAnyBookInDirectory,
-    NotFoundAnyFb2InArchive,
-    Overwriting,
-    OverwritingBooks,
-    RemovingInputFile,
-    RemovingTempDirectory,
-    RemovingTempFile,
-    Skipping,
-    SuccessCleanedAndSavedTo,
-    SuccessOverwritedFrom,
-    Error,
-    Warning,
-    Debug,
-    Trace,
+    HelpInput,
+    HelpOutput,
+    HelpRecursive,
+    HelpTags,
+    HelpZip,
+    HelpUnzip,
+    HelpOverwrite,
+    HelpExitOnError,
+    HelpJobs,
+    HelpLang,
+    HelpVersion,
+    HelpHelp,
+
     GuiStart,
     GuiLanguage,
     GuiSelectToClean,
@@ -67,16 +63,32 @@ pub enum Msg {
     GuiOverwrite,
     GuiStopOnError,
     GuiLog,
-    HelpInput,
-    HelpOutput,
-    HelpRecursive,
-    HelpTags,
-    HelpZip,
-    HelpUnzip,
-    HelpOverwrite,
-    HelpExitOnError,
-    HelpJobs,
-    HelpLang,
-    HelpVersion,
-    HelpHelp,
+
+    Error,
+    Warning,
+    Debug,
+    Trace,
+
+    CleaningBooks,
+    Cleaning,
+    SuccessfullyCleanedTo,
+
+    OverwritingBooks,
+    Overwriting,
+    SuccessfullyOverwritedFrom,
+    RemovingInputFile,
+    RemovingTempDirectory,
+    RemovingTempFile,
+
+    FileAlreadyExists,
+    #[deprecated]
+    FileIsAlreadyExists,
+    NotFoundAValidLangCode,
+    NotFoundAnyBookInDirectory,
+    NotFoundAnyFb2InArchive,
+    Skipping,
+    #[deprecated]
+    SuccessCleanedAndSavedTo,
+    #[deprecated]
+    SuccessOverwritedFrom,
 }

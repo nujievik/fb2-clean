@@ -114,7 +114,7 @@ fn job_src_dests(
         if !cfg.overwrite && dest.path.exists() {
             warn!(
                 "{} '{}'. {}",
-                Msg::FileIsAlreadyExists,
+                Msg::FileAlreadyExists,
                 display(&dest.path),
                 Msg::Skipping,
             );
@@ -130,11 +130,7 @@ fn job_src_dests(
                 continue;
             }
             Ok(()) => {
-                info!(
-                    "{} '{}'",
-                    Msg::SuccessCleanedAndSavedTo,
-                    display(&dest.path)
-                )
+                info!("{} '{}'", Msg::SuccessfullyCleanedTo, display(&dest.path))
             }
         }
 
@@ -151,7 +147,11 @@ fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
     for (src, dest) in &src_dests {
         info!("{} '{}'...", Msg::Overwriting, display(&src.path));
         match dest.force_overwrite(&src) {
-            Ok(()) => info!("{} '{}'", Msg::SuccessOverwritedFrom, display(&dest.path)),
+            Ok(()) => info!(
+                "{} '{}'",
+                Msg::SuccessfullyOverwritedFrom,
+                display(&dest.path)
+            ),
             Err(e) => error!("{}: {}", Msg::Overwriting, e),
         }
     }
