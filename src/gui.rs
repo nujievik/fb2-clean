@@ -1,7 +1,7 @@
 mod logger;
 
 use crate::{
-    Config, Input, InputFile, InputFileType, Lang, Msg, Output, Result, Tags,
+    Config, Input, InputFile, InputFileType, Lang, Msg, Output, Result, Tags, display,
     ensure_long_path_prefix, msg,
 };
 use eframe::egui;
@@ -28,7 +28,7 @@ impl Default for App {
     fn default() -> App {
         let cfg = Config::default();
         let input_buf = cfg.input.to_string();
-        let output_buf = cfg.output.dir.display().to_string();
+        let output_buf = display(&cfg.output.dir).to_string();
 
         let mut log_buf = VecDeque::with_capacity(logger::MAX_LINES);
         log_buf.push_back(format!("{}:\n'{}'", Msg::GuiSelectedToClean, &input_buf));
@@ -126,7 +126,7 @@ impl eframe::App for App {
                                     ty,
                                     path: ensure_long_path_prefix(x).into(),
                                 }),
-                                None => error!("unsupported file extension '{}'", x.display()),
+                                None => error!("unsupported file extension '{}'", display(&x)),
                             }
                         }
 
@@ -226,7 +226,7 @@ impl App {
             dir: dir.into(),
             ..Default::default()
         };
-        self.output_buf = new.dir.display().to_string();
+        self.output_buf = display(&new.dir).to_string();
         if new != self.cfg.output {
             self.cfg.output = new;
             self.is_output_set = true;
@@ -245,10 +245,10 @@ fn start(cfg: &mut Config) -> Result<()> {
 impl Input {
     fn to_string(&self) -> String {
         match self {
-            Self::Dir(path) => path.display().to_string(),
+            Self::Dir(path) => display(&path).to_string(),
             Self::Files(xs) => xs
                 .iter()
-                .map(|p| p.path.display().to_string())
+                .map(|p| display(&p.path).to_string())
                 .collect::<Vec<_>>()
                 .join("\n"),
         }

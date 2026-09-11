@@ -1,5 +1,5 @@
 use super::Config;
-use crate::{Input, InputFile, InputFileType, Msg, Result, remove_xml_tags};
+use crate::{Input, InputFile, InputFileType, Msg, Result, display, remove_xml_tags};
 use either::Either;
 use log::{error, info, warn};
 use quick_xml::{Reader, Writer};
@@ -34,9 +34,7 @@ impl Config {
 
         if !is_found_any.is_completed() {
             if let Input::Dir(d) = &self.input {
-                return Err(
-                    format!("{} '{}'", Msg::NotFoundAnyBookInDirectory, d.display()).into(),
-                );
+                return Err(format!("{} '{}'", Msg::NotFoundAnyBookInDirectory, display(d)).into());
             }
         }
 
@@ -111,13 +109,13 @@ fn job_src_dests(
                 None => break,
             }
         };
-        info!("{} '{}'...", Msg::Cleaning, src.path.display());
+        info!("{} '{}'...", Msg::Cleaning, display(&src.path));
 
         if !cfg.overwrite && dest.path.exists() {
             warn!(
                 "{} '{}'. {}",
                 Msg::FileIsAlreadyExists,
-                dest.path.display(),
+                display(&dest.path),
                 Msg::Skipping,
             );
             continue;
@@ -135,7 +133,7 @@ fn job_src_dests(
                 info!(
                     "{} '{}'",
                     Msg::SuccessCleanedAndSavedTo,
-                    dest.path.display()
+                    display(&dest.path)
                 )
             }
         }
@@ -151,9 +149,9 @@ fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
     info!("\n{}...", Msg::OverwritingBooks);
 
     for (src, dest) in &src_dests {
-        info!("{} '{}'...", Msg::Overwriting, src.path.display());
+        info!("{} '{}'...", Msg::Overwriting, display(&src.path));
         match dest.force_overwrite(&src) {
-            Ok(()) => info!("{} '{}'", Msg::SuccessOverwritedFrom, dest.path.display()),
+            Ok(()) => info!("{} '{}'", Msg::SuccessOverwritedFrom, display(&dest.path)),
             Err(e) => error!("{}: {}", Msg::Overwriting, e),
         }
     }
@@ -168,7 +166,7 @@ fn force_overwrites(src_dests: Vec<(InputFile, Dest)>) {
 
     for d in dirs {
         if let Err(e) = fs::remove_dir(&d) {
-            error!("{} '{}': {}", Msg::RemovingTempDirectory, d.display(), e);
+            error!("{} '{}': {}", Msg::RemovingTempDirectory, display(&d), e);
         }
     }
 }
@@ -200,7 +198,7 @@ fn try_reader_writer<'a>(
                         .unwrap_or(false)
                 })
                 .ok_or_else(|| {
-                    format!("{} '{}'", Msg::NotFoundAnyFb2InArchive, src.path.display())
+                    format!("{} '{}'", Msg::NotFoundAnyFb2InArchive, display(&src.path))
                 })?;
 
             let fb2_file = zip.by_index(fb2_index)?;
@@ -278,13 +276,13 @@ impl Dest {
         if let Err(_) = fs::rename(&self.path, &force_path) {
             fs::copy(&self.path, &force_path)?;
             if let Err(e) = fs::remove_file(&self.path) {
-                error!("{} '{}': {}", Msg::RemovingTempFile, self.path.display(), e);
+                error!("{} '{}': {}", Msg::RemovingTempFile, display(&self.path), e);
             }
         }
 
         if force_path != &*src.path {
             if let Err(e) = fs::remove_file(&src.path) {
-                error!("{} '{}': {}", Msg::RemovingInputFile, src.path.display(), e);
+                error!("{} '{}': {}", Msg::RemovingInputFile, display(&src.path), e);
             }
         }
         Ok(())
