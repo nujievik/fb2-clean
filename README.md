@@ -34,7 +34,7 @@ fb2-clean-* archive for your system.
 ## Default Behaviour
 
 - Saves cleaned files to the **cleaned** subdirectory.
-- Cleans all **fb2** and **fb2.zip** in a CWD directory.
+- Cleans all **fb2** and **fb2.zip** in a CWD directory and 16 its subdirectories.
 - Removes **binary**, **coverpage**, and **image** tags.
 - Keeps input extension: saves **fb2** as **fb2** and **fb2.zip** as
 **fb2.zip**.
