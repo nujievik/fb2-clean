@@ -15,6 +15,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  cargo-publish-dry-run:
+    uses: ./.github/workflows/cargo-publish.yml
+    with:
+      additional_args: '--dry-run'
+
+
   windows-builds:
     runs-on: windows-latest
 
@@ -22,42 +28,60 @@ jobs:
       matrix:
         include:
           - target: x86_64-pc-windows-msvc
-            arch: Windows-x64
+            msvc_arch: x64
+            release_suffix: Windows-x64
+
           - target: i686-pc-windows-msvc
-            arch: Windows-x32
+            msvc_arch: x86
+            release_suffix: Windows-x32
+
+          - target: aarch64-pc-windows-msvc
+            msvc_arch: x64_arm64
+            release_suffix: Windows-arm64
 
     steps:
       - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.msvc_arch }}
 
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
 
       - name: Build
-        run: cargo -vv build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Build GUI
-        run: cargo -vv build --release --bin Fb2CleanGui --no-default-features --features gui --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --bin Fb2CleanGui --no-default-features --features gui
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fb2-clean-${{ matrix.arch }}
+          name: fb2-clean-${{ matrix.release_suffix }}
           path: target/${{ matrix.target }}/release/fb2-clean.exe
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Fb2CleanGui-${{ matrix.arch }}
+          name: Fb2CleanGui-${{ matrix.release_suffix }}
           path: target/${{ matrix.target }}/release/Fb2CleanGui.exe
+
 
   macos-builds:
     runs-on: macos-latest
+
+    env:
+      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: "-C target-cpu=core2"
+      CC_x86_64_apple_darwin: "clang -arch x86_64"
+      CXX_x86_64_apple_darwin: "clang++ -arch x86_64"
+      RC_ARCHS_x86_64_apple_darwin: "x86_64"
 
     strategy:
       matrix:
         include:
           - target: x86_64-apple-darwin
-            arch: macOS-x64
+            release_suffix: macOS-x64
+
           - target: aarch64-apple-darwin
-            arch: macOS-arm64
+            release_suffix: macOS-arm64
 
     steps:
       - uses: actions/checkout@v4
@@ -74,10 +98,10 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Build
-        run: cargo -vv build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Build GUI
-        run: cargo -vv build --release --bin Fb2CleanGui --no-default-features --features gui --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --bin Fb2CleanGui --no-default-features --features gui
 
       - name: Make dmg
         run: |
@@ -86,95 +110,74 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fb2-clean-${{ matrix.arch }}
+          name: fb2-clean-${{ matrix.release_suffix }}
           path: target/${{ matrix.target }}/release/fb2-clean
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Fb2CleanGui-${{ matrix.arch }}
+          name: Fb2CleanGui-${{ matrix.release_suffix }}
           path: Fb2CleanGui.dmg
+
 
   linux-builds:
     runs-on: ubuntu-latest
 
+    env:
+      CFLAGS_x86_64_unknown_linux_musl: "-march=x86-64 -mtune=generic"
+      CXXFLAGS_x86_64_unknown_linux_musl: "-march=x86-64 -mtune=generic"
+      CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-cpu=generic"
+
+      CFLAGS_i686_unknown_linux_musl: "-march=pentium4 -mtune=generic -m32"
+      CXXFLAGS_i686_unknown_linux_musl: "-march=pentium4 -mtune=generic -m32"
+      CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER: "gcc"
+      CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-cpu=pentium4 -C link-args=-m32"
+
     strategy:
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            arch: Linux-x64
-          - target: i686-unknown-linux-gnu
-            arch: Linux-x32
+          - target: x86_64-unknown-linux-musl
+            dependencies: musl-tools
+            release_suffix: Linux-x64
+
+          - target: i686-unknown-linux-musl
+            dependencies: musl-tools gcc-multilib
+            release_suffix: Linux-x32
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install GUI dependencies
         run: |
             sudo apt-get update
             sudo apt-get install -y libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
 
-      - name: Install 32-bit dependencies
-        if: matrix.target == 'i686-unknown-linux-gnu'
-        run: |
-          sudo apt-get install -y gcc-multilib
+      - name: Install dependencies
+        run: sudo apt-get install -y ${{ matrix.dependencies }}
 
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
 
       - name: Build
-        run: cargo -vv build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }}
 
       - name: Build GUI
-        run: cargo -vv build --release --bin Fb2CleanGui --no-default-features --features gui --target ${{ matrix.target }}
+        run: cargo build --target ${{ matrix.target }} --release --bin Fb2CleanGui --no-default-features --features gui
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fb2-clean-${{ matrix.arch }}
+          name: fb2-clean-${{ matrix.release_suffix }}
           path: target/${{ matrix.target }}/release/fb2-clean
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Fb2CleanGui-${{ matrix.arch }}
+          name: Fb2CleanGui-${{ matrix.release_suffix }}
           path: target/${{ matrix.target }}/release/Fb2CleanGui
 
-  linux-arm64-build:
-    runs-on: ubuntu-latest
-    env:
-      CC_aarch64_unknown_linux_gnu: aarch64-linux-gnu-gcc
-      CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
-      TARGET: aarch64-unknown-linux-gnu
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
-
-      - name: Install Rust target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo -vv build --release --target ${{ env.TARGET }}
-
-      - name: Build GUI
-        run: cargo -vv build --release --bin Fb2CleanGui --no-default-features --features gui --target ${{ env.TARGET }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: fb2-clean-Linux-arm64
-          path: target/${{ env.TARGET }}/release/fb2-clean
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Fb2CleanGui-Linux-arm64
-          path: target/${{ env.TARGET }}/release/Fb2CleanGui
           
-  release:
+  github-release:
     name: GitHub Release
     runs-on: ubuntu-latest
-    needs: [windows-builds, macos-builds, linux-builds, linux-arm64-build]
+    needs: [cargo-publish-dry-run, windows-builds, macos-builds, linux-builds]
 
     steps:
       - uses: actions/download-artifact@v4
@@ -212,3 +215,9 @@ jobs:
           files: release/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  cargo-publish:
+    needs: github-release
+    uses: ./.github/workflows/cargo-publish.yml
+    secrets: inherit

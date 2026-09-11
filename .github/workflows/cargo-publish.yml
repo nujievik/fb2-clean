@@ -1,0 +1,34 @@
+name: Cargo Publish
+
+on:
+  workflow_call:
+    inputs:
+      additional_args:
+        required: false
+        type: string
+        default: ''
+
+    secrets:
+      CRATES_TOKEN:
+        required: false
+
+jobs:
+  cargo-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cargo login
+        env:
+          TOKEN: ${{ secrets.CRATES_TOKEN }}
+        if: env.TOKEN != ''
+        run: cargo login "${{ secrets.CRATES_TOKEN }}"
+
+      - name: Cargo publish
+        run: |
+          if [ -n "${{ inputs.additional_args }}" ]; then
+            cargo publish ${{ inputs.additional_args }}
+          else
+            cargo publish
+          fi
