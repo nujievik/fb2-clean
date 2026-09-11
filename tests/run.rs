@@ -109,3 +109,12 @@ fn exit_on_err() {
     let c = cfg(&["-e", "-i", &i, "-o", &o]);
     c.run().unwrap_err();
 }
+
+#[test]
+fn skip_output_directory() {
+    assert!(data("skip_output_directory/cleaned/in_output_directory.fb2").exists());
+    let i = data("skip_output_directory").to_str().unwrap().to_owned();
+    let c = cfg(&["-i", &i]);
+    c.run().unwrap();
+    assert!(!data("skip_output_directory/cleaned/cleaned/in_output_directory.fb2").exists());
+}

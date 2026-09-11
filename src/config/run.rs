@@ -49,9 +49,23 @@ impl Config {
                 let it = WalkDir::new(d)
                     .max_depth(self.recursive as usize)
                     .into_iter()
+                    .filter_entry(|entry| {
+                        // skip non-directory
+                        if !entry.file_type().is_dir() {
+                            return false;
+                        }
+
+                        let entry_bytes = entry.path().as_os_str().as_encoded_bytes();
+                        let out_bytes = self.output.dir.as_os_str().as_encoded_bytes();
+
+                        // skip output directory
+                        if entry_bytes.len() == out_bytes.len() && entry_bytes.ends_with(out_bytes)
+                        {
+                            return false;
+                        }
+                        true
+                    })
                     .filter_map(|e| e.ok())
-                    .filter(|e| e.file_type().is_dir())
-                    .filter(|e| !e.path().starts_with(&*self.output.dir))
                     .map(move |e| {
                         let subdirs: Vec<PathBuf> = e
                             .path()

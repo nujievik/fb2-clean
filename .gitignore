@@ -1,8 +1,9 @@
 **/.DS_Store
+**/cleaned
 *.app
 *.dmg
-/cleaned
 /target
 /tests/data/temp/*
 
 !/tests/data/temp/.gitkeep
+!/tests/data/skip_output_directory/cleaned/in_output_directory.fb2

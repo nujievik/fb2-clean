@@ -7,7 +7,7 @@ pub mod cli;
 #[cfg(feature = "gui")]
 pub mod gui;
 
-use std::{error::Error, result};
+use std::{error::Error, path::PathBuf, result};
 
 pub type Result<T> = result::Result<T, Box<dyn Error>>;
 
@@ -30,4 +30,24 @@ fn log_prefix_root(level: log::Level) -> &'static str {
         _ => return "",
     };
     msg.as_str()
+}
+
+fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
+    #[cfg(unix)]
+    {
+        path.into()
+    }
+
+    #[cfg(windows)]
+    {
+        let path = path.into();
+
+        if path.as_os_str().as_encoded_bytes().starts_with(b"\\\\?\\") {
+            return path;
+        }
+
+        let mut prf_path = std::ffi::OsString::from("\\\\?\\");
+        prf_path.push(path.as_os_str());
+        prf_path.into()
+    }
 }

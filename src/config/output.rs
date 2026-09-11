@@ -91,7 +91,7 @@ fn new_dir(path: &Path) -> Result<Box<Path>> {
         Err("Is not a directory".into())
     } else {
         let dir: PathBuf = try_absolutize(path.into())?.components().collect();
-        Ok(ensure_long_path_prefix(dir).into())
+        Ok(crate::ensure_long_path_prefix(dir).into())
     }
 }
 
@@ -109,25 +109,5 @@ fn try_absolutize(path: PathBuf) -> Result<PathBuf> {
         let mut new = env::current_dir()?;
         new.push(path);
         Ok(new)
-    }
-}
-
-fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
-    #[cfg(unix)]
-    {
-        path.into()
-    }
-
-    #[cfg(windows)]
-    {
-        let path = path.into();
-
-        if path.as_os_str().as_encoded_bytes().starts_with(b"\\\\?\\") {
-            return path;
-        }
-
-        let mut prf_path = std::ffi::OsString::from("\\\\?\\");
-        prf_path.push(path.as_os_str());
-        prf_path.into()
     }
 }

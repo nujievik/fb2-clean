@@ -1,6 +1,9 @@
 mod logger;
 
-use crate::{Config, Input, InputFile, InputFileType, Lang, Msg, Output, Result, Tags, msg};
+use crate::{
+    Config, Input, InputFile, InputFileType, Lang, Msg, Output, Result, Tags,
+    ensure_long_path_prefix, msg,
+};
 use eframe::egui;
 use log::{error, info};
 use logger::{GuiLog, GuiLogger};
@@ -90,6 +93,7 @@ impl eframe::App for App {
                     .clicked()
                 {
                     if let Some(path) = rfd::FileDialog::new().pick_folder() {
+                        let path = ensure_long_path_prefix(path);
                         self.set_input(Input::Dir(path.into()));
                     }
                 }
@@ -103,7 +107,10 @@ impl eframe::App for App {
                         let mut files: Vec<InputFile> = Vec::with_capacity(xs.len());
                         for x in xs {
                             match InputFileType::get_new(&x) {
-                                Some(ty) => files.push(InputFile { ty, path: x.into() }),
+                                Some(ty) => files.push(InputFile {
+                                    ty,
+                                    path: ensure_long_path_prefix(x).into(),
+                                }),
                                 None => error!("unsupported file extension '{}'", x.display()),
                             }
                         }
