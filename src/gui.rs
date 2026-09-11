@@ -7,7 +7,11 @@ use crate::{
 use eframe::egui;
 use log::{error, info};
 use logger::{GuiLog, GuiLogger};
-use std::path::Path;
+use std::{
+    collections::VecDeque,
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Debug)]
 pub struct App {
@@ -23,10 +27,21 @@ pub struct App {
 impl Default for App {
     fn default() -> App {
         let cfg = Config::default();
+        let input_buf = cfg.input.to_string();
+        let output_buf = cfg.output.dir.display().to_string();
+
+        let mut log_buf = VecDeque::with_capacity(logger::MAX_LINES);
+        log_buf.push_back(format!("{}:\n'{}'", Msg::GuiSelectedToClean, &input_buf));
+        log_buf.push_back(format!(
+            "{}:\n'{}'",
+            Msg::GuiSelectedSaveDirectory,
+            &output_buf
+        ));
+
         App {
-            log: Default::default(),
-            input_buf: cfg.input.to_string(),
-            output_buf: cfg.output.dir.display().to_string(),
+            log: Arc::new(Mutex::new(log_buf)),
+            input_buf,
+            output_buf,
             is_output_set: false,
             tags_buf: cfg.tags.to_string(),
             cfg,

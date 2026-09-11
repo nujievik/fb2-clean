@@ -4,6 +4,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+pub const MAX_LINES: usize = 200;
+
 pub type GuiLog = Arc<Mutex<VecDeque<String>>>;
 
 pub struct GuiLogger {
@@ -26,7 +28,6 @@ impl log::Log for GuiLogger {
             _ => return,
         };
 
-        const MAX_LINES: usize = 200;
         if buf.len() >= MAX_LINES {
             buf.pop_front();
         }
