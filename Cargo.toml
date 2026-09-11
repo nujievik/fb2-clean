@@ -30,7 +30,7 @@ required-features = ["gui"]
 
 [features]
 default = ["cli"]
-cli = ["clap", "supports-color"]
+cli = ["clap", "enable-ansi-support"]
 gui = ["eframe", "rfd", "image"]
 
 [dependencies]
@@ -48,7 +48,5 @@ walkdir = "2"
 zip = "6"
 
 [target.'cfg(windows)'.dependencies]
+enable-ansi-support = { version = "0.3.1", optional = true}
 winapi = { version = "0.3", features = ["winnls"] }
-
-[target.'cfg(unix)'.dependencies]
-supports-color = { version = "3", optional = true }

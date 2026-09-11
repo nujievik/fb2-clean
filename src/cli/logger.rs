@@ -1,18 +1,17 @@
 use log::{Level, LevelFilter, Log, Metadata, Record};
-use std::io::{self, Write};
-
-#[cfg(unix)]
-use std::sync::LazyLock;
-#[cfg(unix)]
-use supports_color::{Stream, on};
+use std::{
+    env,
+    io::{self, IsTerminal, Write, stderr, stdout},
+    sync::LazyLock,
+};
 
 static CLI_LOGGER: CliLogger = CliLogger;
 pub struct CliLogger;
 
-#[cfg(unix)]
-static STDERR_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stderr).is_some());
-#[cfg(unix)]
-static STDOUT_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stdout).is_some());
+static STDOUT_ON_COLOR: LazyLock<bool> =
+    LazyLock::new(|| should_enable_color(stdout().is_terminal()));
+static STDERR_ON_COLOR: LazyLock<bool> =
+    LazyLock::new(|| should_enable_color(stderr().is_terminal()));
 
 impl CliLogger {
     pub fn init() {
@@ -20,7 +19,6 @@ impl CliLogger {
         log::set_max_level(LevelFilter::Info);
     }
 
-    #[cfg(unix)]
     fn prf_prefix(level: Level) -> &'static str {
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31m",
@@ -35,24 +33,12 @@ impl CliLogger {
         }
     }
 
-    #[cfg(windows)]
-    fn prf_prefix(_level: Level) -> &'static str {
-        ""
-    }
-
     fn prf_suffix(level: Level) -> &'static str {
-        #[cfg(unix)]
         match level {
             Level::Error | Level::Warn if *STDERR_ON_COLOR => "\x1b[0m: ",
             Level::Error | Level::Warn => ": ",
             Level::Debug | Level::Trace if *STDOUT_ON_COLOR => "\x1b[0m: ",
             Level::Debug | Level::Trace => ": ",
-            _ => "",
-        }
-
-        #[cfg(windows)]
-        match level {
-            Level::Error | Level::Warn | Level::Debug | Level::Trace => ": ",
             _ => "",
         }
     }
@@ -92,4 +78,27 @@ impl Log for CliLogger {
     }
 
     fn flush(&self) {}
+}
+
+fn should_enable_color(stream_is_terminal: bool) -> bool {
+    if !stream_is_terminal {
+        return false;
+    }
+
+    if env::var_os("NO_COLOR").is_some() {
+        return false;
+    }
+    if env::var("TERM").unwrap_or_default() == "dumb" {
+        return false;
+    }
+
+    #[cfg(windows)]
+    {
+        enable_ansi_support::enable_ansi_support().is_ok()
+    }
+
+    #[cfg(unix)]
+    {
+        true
+    }
 }
