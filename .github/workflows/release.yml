@@ -44,6 +44,9 @@ jobs:
           printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
           
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/aur_key
+          
           cat <<EOF > ~/.ssh/config
           Host aur.archlinux.org
             IdentityFile ~/.ssh/aur_key
@@ -51,6 +54,10 @@ jobs:
             StrictHostKeyChecking no
           EOF
           chmod 600 ~/.ssh/config
+          
+          echo "=== ДИАГНОСТИКА ПОДКЛЮЧЕНИЯ К AUR ==="
+          ssh -vT aur@aur.archlinux.org || true
+          echo "====================================="
 
       - name: Clone AUR repo
         run: git clone "ssh://aur@aur.archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
