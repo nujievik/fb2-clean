@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PKG_NAME: fb2-clean
+      NEW_PKGDESC: "Simple CLI utility to remove images from fb2 books."
     
     steps:
       - name: Checkout repository
@@ -49,6 +50,7 @@ jobs:
             bash -c "
               sed -i 's/^pkgver=.*/pkgver=${{ env.VERSION }}/' PKGBUILD
               sed -i 's/^pkgrel=.*/pkgrel=1/' PKGBUILD
+              sed -i 's|^pkgdesc=.*|pkgdesc=\"${{ env.NEW_PKGDESC }}\"|' PKGBUILD
               
               pacman -Syu --noconfirm --needed base-devel pacman-contrib
               
