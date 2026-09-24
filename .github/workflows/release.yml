@@ -36,7 +36,7 @@ jobs:
       - name: Clone AUR repo
         run: |
           cd /tmp
-          git clone "https://archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
+          git clone "https://aur.archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
 
       - name: Update package files
         run: |
