@@ -28,9 +28,11 @@ jobs:
         id: get_version
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+            INPUT_VERSION="${{ github.event.inputs.version }}"
+            echo "VERSION=${INPUT_VERSION#v}" >> $GITHUB_ENV
           else
-            echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+            REF_VERSION="${{ github.ref_name }}"
+            echo "VERSION=${REF_VERSION#v}" >> $GITHUB_ENV
           fi
 
       - name: Clone AUR repo
