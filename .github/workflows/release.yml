@@ -30,16 +30,31 @@ jobs:
             echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
           fi
 
-      - name: Update and Deploy to AUR
+      - name: Clone AUR repo
+        run: |
+          cd /tmp
+          git clone "https://archlinux.org/{PKGNAME}.git" aur_repo
+
+      - name: Update package files
+        run: |
+          cp "$GITHUB_WORKSPACE/PKGBUILD" /tmp/aur_repo/PKGBUILD
+          cd /tmp/aur_repo
+          
+          sed -i "s/^pkgver=.*/pkgver=${{ env.VERSION }}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          
+          sudo apt-get update && sudo apt-get install -y pacman-package-utilities
+          updpkgsums
+          makepkg --printsrcinfo > .SRCINFO
+
+      - name: Setup SSH Key for AUR
         env:
           AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-          PKGNAME: "fb2-clean"
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
           mkdir -p ~/.ssh
           printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
-
+          
           cat <<EOF > ~/.ssh/config
           Host aur.archlinux.org
             IdentityFile ~/.ssh/aur_key
@@ -48,28 +63,18 @@ jobs:
           EOF
           chmod 600 ~/.ssh/config
 
-          cd /tmp
-          git clone "ssh://aur@aur.archlinux.org/${PKGNAME}.git" aur_repo
+      - name: Commit and Push to AUR
+        run: |
+          cd /tmp/aur_repo
           
-          cp "$GITHUB_WORKSPACE/PKGBUILD" aur_repo/PKGBUILD
-          cd aur_repo
-
-          sed -i "s/^pkgver=.*/pkgver=$VERSION/" PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD # Сбрасываем релиз в 1 при новой версии
-
-          sudo apt-get update && sudo apt-get install -y pacman-package-utilities
-
-          updpkgsums
-
-          makepkg --printsrcinfo > .SRCINFO
-
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "github-actions[bot]@://github.com"
           
           git add PKGBUILD .SRCINFO
           
           if ! git diff-index --quiet HEAD; then
-            echo "Update to v${VERSION}"
+            git diff
+            echo "Update to v${{ env.VERSION }}"
           else
             echo "No changes to commit."
           fi
