@@ -87,8 +87,9 @@ jobs:
           git add PKGBUILD .SRCINFO
           
           if ! git diff-index --quiet HEAD; then
-            git diff
-            echo "Update to v${{ env.VERSION }}"
+            echo "=== AUR CHANGES ==="
+            git diff --cached
+            echo "================================="
           else
             echo "No changes to commit."
           fi
