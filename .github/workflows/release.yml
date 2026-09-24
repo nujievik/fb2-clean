@@ -92,6 +92,8 @@ jobs:
             echo "=== AUR CHANGES ==="
             git diff --cached
             echo "================================="
+            git commit -m "Update to v${{ env.VERSION }}"
+            git push origin master
           else
             echo "No changes to commit."
           fi
