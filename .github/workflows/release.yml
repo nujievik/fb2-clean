@@ -40,12 +40,9 @@ jobs:
 
       - name: Update package files
         run: |
-          cp "$GITHUB_WORKSPACE/PKGBUILD" /tmp/aur_repo/PKGBUILD
           cd /tmp/aur_repo
-          
           sed -i "s/^pkgver=.*/pkgver=${{ env.VERSION }}/" PKGBUILD
           sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          
           sudo apt-get update && sudo apt-get install -y pacman-package-utilities
           updpkgsums
           makepkg --printsrcinfo > .SRCINFO
