@@ -36,10 +36,26 @@ jobs:
             echo "VERSION=${REF_VERSION#v}" >> $GITHUB_ENV
           fi
 
-      - name: Clone AUR repo
-        run: git clone "https://aur.archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
+      - name: Setup SSH Key for AUR
+        env:
+          AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
+          chmod 600 ~/.ssh/aur_key
+          
+          cat <<EOF > ~/.ssh/config
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
 
-      - name: Update package files (via Arch Linux Docker)
+      - name: Clone AUR repo
+        run: git clone "ssh://aur@aur.archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
+
+      - name: Update package files
         run: |
           chmod -R 777 aur_repo
           
@@ -62,22 +78,6 @@ jobs:
               sudo -u builder updpkgsums
               sudo -u builder makepkg --printsrcinfo > .SRCINFO
             "
-
-      - name: Setup SSH Key for AUR
-        env:
-          AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
-          chmod 600 ~/.ssh/aur_key
-          
-          cat <<EOF > ~/.ssh/config
-          Host aur.archlinux.org
-            IdentityFile ~/.ssh/aur_key
-            IdentitiesOnly yes
-            StrictHostKeyChecking no
-          EOF
-          chmod 600 ~/.ssh/config
 
       - name: Commit and Push to AUR
         run: |
