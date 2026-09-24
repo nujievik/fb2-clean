@@ -17,6 +17,9 @@ env:
 jobs:
   aur-publish:
     runs-on: ubuntu-latest
+    env:
+      PKG_NAME: fb2-clean
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,7 +36,7 @@ jobs:
       - name: Clone AUR repo
         run: |
           cd /tmp
-          git clone "https://archlinux.org/{PKGNAME}.git" aur_repo
+          git clone "https://archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
 
       - name: Update package files
         run: |
