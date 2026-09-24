@@ -39,7 +39,14 @@ jobs:
           mkdir -p ~/.ssh
           printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
-          export GIT_SSH_COMMAND="ssh -i ~/.ssh/aur_key -o StrictHostKeyChecking=no"
+
+          cat <<EOF > ~/.ssh/config
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
 
           cd /tmp
           git clone "ssh://aur@aur.archlinux.org/${PKGNAME}.git" aur_repo
