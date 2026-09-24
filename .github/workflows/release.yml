@@ -34,18 +34,27 @@ jobs:
           fi
 
       - name: Clone AUR repo
-        run: |
-          cd /tmp
-          git clone "https://aur.archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
+        run: git clone "https://aur.archlinux.org/${{ env.PKG_NAME }}.git" aur_repo
 
-      - name: Update package files
+      - name: Update package files (via Arch Linux Docker)
         run: |
-          cd /tmp/aur_repo
-          sed -i "s/^pkgver=.*/pkgver=${{ env.VERSION }}/" PKGBUILD
-          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
-          sudo apt-get update && sudo apt-get install -y pacman-package-utilities
-          updpkgsums
-          makepkg --printsrcinfo > .SRCINFO
+          chmod -R 777 aur_repo
+          
+          docker run --rm \
+            -v "$PWD/aur_repo:/workspace" \
+            -w /workspace \
+            archlinux:latest \
+            bash -c "
+              sed -i 's/^pkgver=.*/pkgver=${{ env.VERSION }}/' PKGBUILD
+              sed -i 's/^pkgrel=.*/pkgrel=1/' PKGBUILD
+              
+              pacman -Syu --noconfirm --needed base-devel pacman-contrib
+              
+              updpkgsums
+              
+              useradd -m builder && chown -R builder:builder /workspace
+              sudo -u builder makepkg --printsrcinfo > .SRCINFO
+            "
 
       - name: Setup SSH Key for AUR
         env:
@@ -65,7 +74,7 @@ jobs:
 
       - name: Commit and Push to AUR
         run: |
-          cd /tmp/aur_repo
+          cd aur_repo
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@://github.com"
