@@ -37,7 +37,7 @@ jobs:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
           mkdir -p ~/.ssh
-          echo "$AUR_KEY" > ~/.ssh/aur_key
+          printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
           chmod 600 ~/.ssh/aur_key
           export GIT_SSH_COMMAND="ssh -i ~/.ssh/aur_key -o StrictHostKeyChecking=no"
 
