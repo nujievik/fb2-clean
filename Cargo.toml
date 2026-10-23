@@ -33,6 +33,13 @@ default = ["cli"]
 cli = ["clap", "enable-ansi-support"]
 gui = ["eframe", "rfd", "image"]
 
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+panic = 'abort'
+strip = true
+
 [dependencies]
 clap = { version = "4.5", optional = true }
 eframe = { version = "0.33.3", optional = true }
