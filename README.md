@@ -43,7 +43,7 @@ its subdirectories too).
 
 ## Recursive Search
 
-To enable recursive search in CLI use `fb2-clean -r16`.
+In CLI use `fb2-clean -r16` to enable recursive search.
 For GUI recursive search is enabled by default.
 
 
@@ -53,16 +53,16 @@ Run `fb2-clean -h` to display help.
 
 | Option                  | Description                       |
 |-------------------------|-----------------------------------|
-| `-i, --input <path>` | Directory with files OR file to clean |
-| `-o, --output <dir>` | Save output files to directory |
+| `-i, --input <path>` | Set directory with files OR file to clean |
+| `-o, --output <dir>` | Save cleaned files to directory |
 | `-r, --recursive <n>` |  Clean files in subdirectories too (up to n level) |
 | `-t, --tags <n[,m...]>` | Remove tags from file structure |
 | `-z, --zip` | Save output files as fb2.zip |
 | `-Z, --unzip` | Save output files as fb2 |
 | `-w, --overwrite` | Overwrite input files |
 | `-e, --exit-on-err` | Don't clean next files on error |
-| `-j, --jobs <n>` | Max parallel jobs (multithreading) |
-| `-l, --lang <lng>` | Set log language |
+| `-j, --jobs <n>` | Set max parallel cleaning |
+| `-l, --lang <lng>` | Set log language (eng OR rus) |
 
 
 ## Manual Build 🤓

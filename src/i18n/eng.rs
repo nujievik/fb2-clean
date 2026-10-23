@@ -1,15 +1,16 @@
 impl_msg_as_str!(
     as_str_eng,
-    HelpInput => "Directory with files OR file to clean",
-    HelpOutput => "Save output files to directory",
-    HelpJobs => "Max parallel jobs (multithreading)",
+    HelpInput => "Set directory with files OR file to clean",
+    HelpOutput => "Save cleaned files to directory",
     HelpRecursive => "Clean files in subdirectories too (up to n level)",
     HelpTags => "Remove tags from file structure",
-    HelpZip => "Save output files as fb2.zip",
-    HelpUnzip => "Save output files as fb2",
+    HelpZip => "Save cleaned files as fb2.zip",
+    HelpUnzip => "Save cleaned files as fb2",
     HelpOverwrite => "Overwrite input files",
     HelpExitOnError => "Don't clean next files on error",
-    HelpLang => "Set log language",
+    HelpJobs => "Set max parallel cleaning",
+
+    HelpLang => "Set log language (eng OR rus)",
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
