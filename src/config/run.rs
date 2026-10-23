@@ -191,9 +191,11 @@ fn try_reader_writer<'a>(
                     zip.by_index(i)
                         .ok()
                         .map(|f| {
-                            let bytes = f.name().as_bytes();
-                            let len = bytes.len();
-                            len > 3 && bytes[len - 4..len].eq_ignore_ascii_case(b".fb2")
+                            f.name().is_ok_and(|name| {
+                                let bytes = name.as_bytes();
+                                let len = bytes.len();
+                                len > 3 && bytes[len - 4..len].eq_ignore_ascii_case(b".fb2")
+                            })
                         })
                         .unwrap_or(false)
                 })

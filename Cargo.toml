@@ -3,7 +3,7 @@ name = "fb2-clean"
 version = "0.5.1"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 description = "A simple GUI/CLI utility to remove images from fb2 books."
 repository = "https://github.com/nujievik/fb2-clean"
 license = "MIT OR Apache-2.0"
@@ -52,7 +52,7 @@ quick-xml = "0.38"
 rayon = "1"
 rfd = { version = "0.17", optional = true }
 walkdir = "2"
-zip = "6"
+zip = "9"
 
 [target.'cfg(windows)'.dependencies]
 enable-ansi-support = { version = "0.3.1", optional = true}
