@@ -34,10 +34,17 @@ fb2-clean-* archive for your system.
 ## Default Behaviour
 
 - Saves cleaned files to the **cleaned** subdirectory.
-- Cleans all **fb2** and **fb2.zip** in a CWD directory and 16 its subdirectories.
+- Cleans all **fb2** and **fb2.zip** in a CWD directory (for GUI in 16
+its subdirectories too).
 - Removes **binary**, **coverpage**, and **image** tags.
 - Keeps input extension: saves **fb2** as **fb2** and **fb2.zip** as
 **fb2.zip**.
+
+
+## Recursive Search
+
+To enable recursive search in CLI use `fb2-clean -r16`.
+For GUI recursive search is enabled by default.
 
 
 ## Advanced Use 🤓
@@ -48,7 +55,7 @@ Run `fb2-clean -h` to display help.
 |-------------------------|-----------------------------------|
 | `-i, --input <path>` | Directory with files OR file to clean |
 | `-o, --output <dir>` | Save output files to directory |
-| `-r, --recursive <n>` |  Find files in nested directories (up to n level) |
+| `-r, --recursive <n>` |  Clean files in subdirectories too (up to n level) |
 | `-t, --tags <n[,m...]>` | Remove tags from file structure |
 | `-z, --zip` | Save output files as fb2.zip |
 | `-Z, --unzip` | Save output files as fb2 |

@@ -18,7 +18,7 @@ impl Default for Config {
 
 impl Config {
     pub(crate) const fn default_recursive() -> u8 {
-        16
+        0
     }
 
     pub(crate) fn default_jobs() -> u64 {

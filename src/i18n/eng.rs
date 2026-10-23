@@ -3,7 +3,7 @@ impl_msg_as_str!(
     HelpInput => "Directory with files OR file to clean",
     HelpOutput => "Save output files to directory",
     HelpJobs => "Max parallel jobs (multithreading)",
-    HelpRecursive => "Find files in nested directories (up to n level)",
+    HelpRecursive => "Clean files in subdirectories too (up to n level)",
     HelpTags => "Remove tags from file structure",
     HelpZip => "Save output files as fb2.zip",
     HelpUnzip => "Save output files as fb2",

@@ -25,7 +25,7 @@ fn empty_args() {
 
     assert_eq!(c.input, Input::Dir(idir));
     assert_eq!(c.output, o);
-    assert_eq!(c.recursive, 16);
+    assert_eq!(c.recursive, 0);
     assert_eq!(c.tags, Tags::default());
     assert!(!c.zip);
     assert!(!c.unzip);

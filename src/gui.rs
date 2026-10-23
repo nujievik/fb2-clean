@@ -26,7 +26,8 @@ pub struct App {
 
 impl Default for App {
     fn default() -> App {
-        let cfg = Config::default();
+        let mut cfg = Config::default();
+        cfg.recursive = 16;
         let input_buf = cfg.input.to_string();
         let output_buf = display(&cfg.output.dir).to_string();
 
