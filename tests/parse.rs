@@ -170,6 +170,12 @@ fn exit_on_err() {
 }
 
 #[test]
+fn lang() {
+    eq_empty_without_io(&cfg(&["--lang", "eng"]));
+    eq_empty_without_io(&cfg(&["--lang", "rus"]));
+}
+
+#[test]
 fn aliases_io_tags() {
     let v = env!("CARGO_MANIFEST_DIR");
 

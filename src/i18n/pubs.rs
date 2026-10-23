@@ -99,19 +99,19 @@ fn get_lang_from_system_locale() -> Option<Lang> {
 }
 
 fn get_lang_from_str(s: &str) -> Option<Lang> {
-    fn str_to_ascii_words(s: &str) -> impl Iterator<Item = &str> {
-        use lazy_regex::{Lazy, Regex, regex};
-        static REGEX_ASCII_WORD: &Lazy<Regex> = regex!(r"[a-zA-Z]+");
-        REGEX_ASCII_WORD.find_iter(s).map(|mat| mat.as_str())
+    fn str_to_ascii_words(s: &str) -> impl Iterator<Item = &[u8]> {
+        s.as_bytes()
+            .split(|b| !b.is_ascii_alphabetic())
+            .filter(|w| !w.is_empty())
     }
 
     let mut buf = [0u8; 3];
-    str_to_ascii_words(s).find_map(|s| {
-        let len = s.len();
+    str_to_ascii_words(s).find_map(|word| {
+        let len = word.len();
         if !matches!(len, 2 | 3) {
             return None;
         }
-        for (dst, src) in buf[..len].iter_mut().zip(s.bytes()) {
+        for (dst, src) in buf[..len].iter_mut().zip(word) {
             *dst = src.to_ascii_lowercase();
         }
 
