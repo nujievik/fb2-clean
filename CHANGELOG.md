@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.6.0] - 2026-10-23
+
+### Changed
+- CLI: change default recursive to 0: recursive iter may too slow and
+the best practice is to call it explicitly.
+- Release compile profile for performance.
+- Update dependencies & remove unused with new code.
+
+
 ## [0.5.1] - 2026-09-11
 
 ### Added

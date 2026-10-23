@@ -1,10 +1,10 @@
 [package]
 name = "fb2-clean"
-version = "0.5.1"
+version = "0.6.0"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.88"
-description = "A simple GUI/CLI utility to remove images from fb2 books."
+description = "Simple GUI/CLI utility to remove images from fb2 books"
 repository = "https://github.com/nujievik/fb2-clean"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]

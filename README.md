@@ -1,6 +1,6 @@
 # fb2-clean
 
-A simple GUI/CLI utility to remove images from fb2 books.
+Simple GUI/CLI utility to remove images from fb2 books.
 
 [![Tests](https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml/badge.svg)](
 https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml)
