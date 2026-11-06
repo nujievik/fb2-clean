@@ -229,6 +229,7 @@ jobs:
 
 
   cargo-publish:
+    if: false # TODO: delete in next release
     needs: github-release
     uses: ./.github/workflows/cargo-publish.yml
     secrets: inherit

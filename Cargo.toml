@@ -1,6 +1,6 @@
 [package]
 name = "fb2-clean"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.88"
@@ -14,7 +14,6 @@ default-run = "fb2-clean"
 include = [
     "Cargo.toml",
     "README.md",
-    "assets/logo.png",
     "src/**",
 ]
 

@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.6.1] - 2026-11-06
+
+### Changed
+- GUI: update text.
+- Windows prebuilts: no system Visual C++ dependency.
+- Recursive search:
+  - 255 (MAX) value is unlimited
+  - GUI: default unlimited
+  - CLI: allow -r without number (unlimited value)
+
+
 ## [0.6.0] - 2026-10-23
 
 ### Changed
