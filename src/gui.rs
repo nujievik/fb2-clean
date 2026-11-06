@@ -27,7 +27,7 @@ pub struct App {
 impl Default for App {
     fn default() -> App {
         let mut cfg = Config::default();
-        cfg.recursive = 16;
+        cfg.recursive = 255;
         let input_buf = cfg.input.to_string();
         let output_buf = display(&cfg.output.dir).to_string();
 
@@ -168,7 +168,15 @@ impl eframe::App for App {
                 ui.horizontal(|ui| {
                     ui.label(msg!(GuiRecursiveSearch))
                         .on_hover_text(msg!(HelpRecursive));
-                    ui.add(egui::DragValue::new(&mut self.cfg.recursive).range(0..=255));
+
+                    ui.add(
+                        egui::DragValue::new(&mut self.cfg.recursive)
+                            .range(0..=255)
+                            .custom_formatter(|value, _| match value {
+                                255.0 => "max".into(),
+                                _ => value.to_string(),
+                            }),
+                    );
                 });
             });
             ui.add_space(10.0);

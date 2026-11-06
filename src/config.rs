@@ -14,6 +14,7 @@ use tags::Tags;
 pub struct Config {
     pub input: Input,
     pub output: Output,
+    // TODO: replace to u16 OR enum
     pub recursive: u8,
     pub tags: Tags,
     pub zip: bool,

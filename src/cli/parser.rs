@@ -112,6 +112,8 @@ impl CommandFactory for Config {
                     .long("recursive")
                     .value_name("n")
                     .help(msg!(HelpRecursive))
+                    .num_args(0..=1)
+                    .default_missing_value("255")
                     .value_parser(value_parser!(u8)),
             )
             .arg(

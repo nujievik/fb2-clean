@@ -191,6 +191,7 @@ fn aliases_io_tags() {
 #[test]
 fn flag_aliases() {
     [
+        vec!["-r", "--recursive", "-r255"],
         vec!["-z", "--zip"],
         vec!["-Z", "--unzip", "--no-zip"],
         vec!["-w", "--overwrite"],

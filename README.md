@@ -5,8 +5,6 @@ Simple GUI/CLI utility to remove images from fb2 books.
 [![Tests](https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml/badge.svg)](
 https://github.com/nujievik/fb2-clean/actions/workflows/tests.yml)
 
-![logo](https://raw.githubusercontent.com/nujievik/fb2-clean/main/assets/logo.png)
-
 
 ## Quick Start
 
@@ -34,7 +32,7 @@ fb2-clean-* archive for your system.
 ## Default Behaviour
 
 - Saves cleaned files to the **cleaned** subdirectory.
-- Cleans all **fb2** and **fb2.zip** in a CWD directory (for GUI in 16
+- Cleans all **fb2** and **fb2.zip** in a CWD directory (for GUI in
 its subdirectories too).
 - Removes **binary**, **coverpage**, and **image** tags.
 - Keeps input extension: saves **fb2** as **fb2** and **fb2.zip** as
@@ -43,7 +41,7 @@ its subdirectories too).
 
 ## Recursive Search
 
-In CLI use `fb2-clean -r16` to enable recursive search.
+In CLI use `fb2-clean -r` to enable recursive search.
 For GUI recursive search is enabled by default.
 
 
@@ -55,7 +53,7 @@ Run `fb2-clean -h` to display help.
 |-------------------------|-----------------------------------|
 | `-i, --input <path>` | Set directory with files OR file to clean |
 | `-o, --output <dir>` | Save cleaned files to directory |
-| `-r, --recursive <n>` |  Clean files in subdirectories too (up to n level) |
+| `-r, --recursive [<n>]` |  Clean files in subdirectories too (up to n level) |
 | `-t, --tags <n[,m...]>` | Remove tags from file structure |
 | `-z, --zip` | Save output files as fb2.zip |
 | `-Z, --unzip` | Save output files as fb2 |

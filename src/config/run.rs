@@ -44,8 +44,12 @@ impl Config {
     fn subdirs_src_iter(&self) -> impl Iterator<Item = (Option<Vec<PathBuf>>, InputFile)> {
         match &self.input {
             Input::Dir(d) if self.recursive != 0 => {
-                let it = WalkDir::new(d)
-                    .max_depth(self.recursive as usize)
+                let mut walk = WalkDir::new(d);
+                if self.recursive != u8::MAX {
+                    walk = walk.max_depth(self.recursive as usize)
+                }
+
+                let it = walk
                     .into_iter()
                     .filter_entry(|entry| {
                         // skip non-directory
