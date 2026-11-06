@@ -60,6 +60,7 @@ pub enum Msg {
     GuiTagsSet,
     GuiMultithreading,
     GuiRecursiveSearch,
+    GuiHelpRecursiveSearch,
     GuiOverwrite,
     GuiStopOnError,
     GuiLog,

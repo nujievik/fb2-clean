@@ -15,7 +15,7 @@ impl_msg_as_str!(
     HelpHelp => "Show help",
 
     GuiStart => "START",
-    GuiLanguage => "Language",
+    GuiLanguage => "language",
     GuiSelectToClean => "Select to clean:",
     GuiDirectory => "directory",
     GuiOr => "OR",
@@ -31,6 +31,7 @@ impl_msg_as_str!(
     GuiTagsSet => "Tags set",
     GuiMultithreading => "Multithreading:",
     GuiRecursiveSearch => "Recursive search:",
+    GuiHelpRecursiveSearch => "Clean files in subdirectories too (up to n level)",
     GuiOverwrite => "overwrite",
     GuiStopOnError => "stop on error",
     GuiLog => "Log:",

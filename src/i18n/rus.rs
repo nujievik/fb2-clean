@@ -15,7 +15,7 @@ impl_msg_as_str!(
     HelpHelp => "Показать справку",
 
     GuiStart => "СТАРТ",
-    GuiLanguage => "Язык",
+    GuiLanguage => "язык",
     GuiSelectToClean => "Выбрать для очистки:",
     GuiDirectory => "директорию",
     GuiOr => "ИЛИ",
@@ -31,6 +31,7 @@ impl_msg_as_str!(
     GuiTagsSet => "Теги установлены",
     GuiMultithreading => "Многопоточность:",
     GuiRecursiveSearch => "Рекурсивный поиск:",
+    GuiHelpRecursiveSearch => "Также очищать файлы во вложенных\nдиректориях (до n уровня)",
     GuiOverwrite => "перезаписать",
     GuiStopOnError => "остановить при ошибке",
     GuiLog => "Лог:",

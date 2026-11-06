@@ -167,7 +167,7 @@ impl eframe::App for App {
             ui.add_enabled_ui(matches!(self.cfg.input, Input::Dir(_)), |ui| {
                 ui.horizontal(|ui| {
                     ui.label(msg!(GuiRecursiveSearch))
-                        .on_hover_text(msg!(HelpRecursive));
+                        .on_hover_text(msg!(GuiHelpRecursiveSearch));
 
                     ui.add(
                         egui::DragValue::new(&mut self.cfg.recursive)
